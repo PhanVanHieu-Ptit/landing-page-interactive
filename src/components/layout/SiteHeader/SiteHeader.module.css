@@ -1,8 +1,29 @@
+/*
+ * The header floats over whatever opens the page (the Hero): the negative
+ * margin hands its height back to the content below. At the top it is bare;
+ * once the page scrolls, or the mobile menu opens, it takes the scrim, blur and
+ * hairline. The border is transparent rather than absent, so the header's
+ * height, and with it that margin, never changes.
+ */
 .header {
   position: sticky;
   inset-block-start: 0;
   z-index: var(--z-header);
-  border-block-end: var(--border-hairline) solid var(--color-line);
+  margin-block-end: calc((var(--header-h) + var(--border-hairline)) * -1);
+  border-block-end: var(--border-hairline) solid transparent;
+  background-color: transparent;
+  -webkit-backdrop-filter: blur(0) saturate(1);
+  backdrop-filter: blur(0) saturate(1);
+  transition:
+    background-color var(--duration-base) var(--ease-standard),
+    border-color var(--duration-base) var(--ease-standard),
+    -webkit-backdrop-filter var(--duration-base) var(--ease-standard),
+    backdrop-filter var(--duration-base) var(--ease-standard);
+}
+
+.header[data-scrolled],
+.header[data-menu-open] {
+  border-block-end-color: var(--color-line);
   background-color: var(--color-scrim);
   -webkit-backdrop-filter: blur(14px) saturate(1.1);
   backdrop-filter: blur(14px) saturate(1.1);

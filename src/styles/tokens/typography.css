@@ -25,6 +25,7 @@
   --text-3xl: clamp(2.25rem, 1.75rem + 2.2222vw, 3.75rem); /* 36 → 60  h2 */
   --text-4xl: clamp(2.75rem, 1.9167rem + 3.7037vw, 5.25rem); /* 44 → 84  closing statement */
   --text-display: clamp(3.25rem, 1.8333rem + 6.2963vw, 7.5rem); /* 52 → 120 h1 */
+  --text-hero: clamp(3.75rem, 1.5rem + 9vw, 9rem); /* 60 → 144 hero headline, set over the product */
   --text-ghost: clamp(6rem, 24vw, 24rem); /* decorative footer wordmark only */
 
   --leading-display: 0.94;
