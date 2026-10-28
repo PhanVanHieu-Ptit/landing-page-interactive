@@ -6,7 +6,7 @@ Built with React 19, TypeScript 7 (strict), Vite 8, vanilla CSS with custom prop
 
 > Aurelle is a fictional brand created for this demonstration. Check trademarks before using the name for anything real.
 
-**Status:** foundation and visual design system. Advanced animation (a preloader, a scroll-driven scene, entrance choreography) is deliberately not built yet. See the [roadmap](#roadmap).
+**Status:** foundation, visual design system, and the cinematic Hero (entrance choreography and a scroll-linked exit). A preloader and a scroll-driven lens scene are deliberately not built yet. See the [roadmap](#roadmap).
 
 ## Quick start
 
@@ -38,9 +38,9 @@ src/
     icons/       Inline SVG icons and the logo mark (currentColor)
     stage/       ProductStage: the canvas that hosts the hero product
   sections/      Hero, Anatomy, Specifications, Reserve
-  hooks/         useDisclosure, useElementSize
-  animation/     Canvas helpers and the lens renderer: no React, no UI
-  lib/           cx, cssVars, renderEmphasis
+  hooks/         useDisclosure, useElementSize, usePrefersReducedMotion, useScrolled
+  animation/     Canvas helpers, the lens renderer, tween, Hero intro, scroll progress: no React, no UI
+  lib/           cx, cssVars, renderEmphasis, renderRevealWords
 docs/            Reference analysis
 ```
 
@@ -80,17 +80,21 @@ Warm near-black surfaces, ivory text, one amber accent. Measured WCAG 2.x ratios
 
 ### Motion
 
-Everything animates through `--duration-*` and `--ease-*` (default: `--ease-out-quint`). Under `prefers-reduced-motion: reduce`, the duration tokens collapse to 1ms, smooth scrolling turns off, and a safety net in `reset.css` neutralizes any stray transition or keyframe. The ScrollHint animation runs only under `no-preference`.
+Everything animates through `--duration-*` and `--ease-*` (default: `--ease-out-quint`). Under `prefers-reduced-motion: reduce`, the duration tokens collapse to 1ms, smooth scrolling turns off, and a safety net in `reset.css` neutralizes any stray transition or keyframe. The ScrollHint animation runs only under `no-preference`. Motion driven from JavaScript (Web Animations, the lens tween, scroll-linked values) ignores those CSS rules, so it checks `usePrefersReducedMotion` instead and renders the final state.
+
+### Hero motion
+
+The lens leads and the copy follows, about 2 seconds in total. Entrance animations use the Web Animations API with `fill: 'backwards'`: the resting look lives in the stylesheet, the start pose is held until the animation plays, and webfonts are awaited (up to 600 ms) so the headline never reflows mid-reveal. The iris opens through a one-shot `requestAnimationFrame` tween of `LensParams`. Scrolling away writes `--hero-progress` (0 to 1) on the section, which the stylesheet turns into a drifting lens and fading copy; the bottom of the Hero ends on exactly `--color-bg`, so the next section continues the same black. The header floats over the Hero and takes its scrim and hairline once the page scrolls.
 
 ### Breakpoints
 
-Mobile-first. `md` 48rem: inline navigation and two-column rows. `lg` 64rem: the two-column hero and four-column grids. CSS cannot read custom properties inside `@media`, so the `--bp-*` tokens are the documented source of truth and every query repeats the same literal rem value.
+Mobile-first. `md` 48rem: inline navigation and two-column rows. `lg` 64rem: a larger Hero lens, a three-column Hero rail, and four-column grids. CSS cannot read custom properties inside `@media`, so the `--bp-*` tokens are the documented source of truth and every query repeats the same literal rem value.
 
 ### Components
 
 | Component | Notes |
 | --- | --- |
-| `SiteHeader` | Sticky; mark, two links, one CTA. Below `md`, a text Menu/Close toggle opens a panel (`aria-expanded`, Esc closes and returns focus). |
+| `SiteHeader` | Sticky and transparent over the Hero until the page scrolls; mark, two links, one CTA. Below `md`, a text Menu/Close toggle opens a panel (`aria-expanded`, Esc closes and returns focus). |
 | `Navigation` | One labelled `<nav>`; `header` and `footer` variants; underline reveal on hover and focus. |
 | `PrimaryButton` | A link when given `href`, otherwise a button. Ivory fill, arrow nudge, 48px tall (44px at `sm`). |
 | `SectionHeading` | Index and eyebrow with a fading rule, serif title with one italic word, optional lede. |
@@ -98,7 +102,7 @@ Mobile-first. `md` 48rem: inline navigation and two-column rows. `lg` 64rem: the
 | `ScrollHint` | A real link to the next section, with a slow traveling highlight. |
 | `SiteFooter` | Brand, links, contact, fictional-brand note, and a ghost wordmark. |
 
-`ProductStage` draws the hero lens on a canvas with `animation/lens.ts`: a parametric, procedurally drawn front-on lens. It reads its colors from the CSS tokens and exposes `LensParams` (`irisOpen`, `ringRotation`, `lightAngle`) so a later scene can animate it without pre-rendered frames. It renders one static frame today; there is no animation loop.
+`ProductStage` draws the hero lens on a canvas with `animation/lens.ts`: a parametric, procedurally drawn front-on lens. It reads its colors from the CSS tokens and exposes `LensParams` (`irisOpen`, `ringRotation`, `lightAngle`) so it can be animated without pre-rendered frames. With `introduce`, the Hero plays a one-shot entrance (fade, settle, iris opening); a later scroll-driven scene can scrub the same parameters.
 
 ## Conventions
 
@@ -107,7 +111,7 @@ Mobile-first. `md` 48rem: inline navigation and two-column rows. `lg` 64rem: the
 - **`className?: string | undefined`** on component props: CSS Module lookups are typed `string | undefined` (`noUncheckedIndexedAccess`), which `exactOptionalPropertyTypes` would otherwise reject.
 - **Architecture guard.** `src/animation` and `src/content` may not import React or UI folders. `oxlint` enforces it (`.oxlintrc.json`).
 - **Breakpoints.** Media-query widths must match a `--bp-*` token.
-- **JS-driven animation must respect `prefers-reduced-motion`.** Add a `usePrefersReducedMotion` hook with the first JS animation.
+- **JS-driven animation must respect `prefers-reduced-motion`.** Use `usePrefersReducedMotion` and render the final state; CSS safety nets do not reach the Web Animations API or `requestAnimationFrame`.
 
 ## Accessibility
 
@@ -115,10 +119,10 @@ Skip link; one banner, one main, one contentinfo, and two distinctly labelled na
 
 ## Roadmap
 
-1. A preloader with real progress.
+1. A preloader with real progress. The Hero intro starts on mount today; it will need to wait for the preloader.
 2. A scroll-driven scene that scrubs `LensParams` and feeds `SectionIndicator`'s `progress`.
-3. Entrance choreography, coordinated with the preloader.
-4. `usePrefersReducedMotion` and `useMediaQuery` hooks, when the first JS animation arrives.
+3. Entrance choreography for the sections below the Hero.
+4. A `useMediaQuery` hook, when something needs one.
 5. Open Graph image, analytics, tests.
 
 ## Credits

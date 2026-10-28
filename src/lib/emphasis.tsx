@@ -10,3 +10,35 @@ export function renderEmphasis(text: string): ReactNode {
     .split(/\*([^*]+)\*/)
     .map((part, index) => (index % 2 === 1 ? <em key={index}>{part}</em> : <Fragment key={index}>{part}</Fragment>))
 }
+
+interface RevealWordClasses {
+  /** The clipping mask around each word. `| undefined` because CSS Module lookups are typed `string | undefined`. */
+  word: string | undefined
+  /** The element that moves inside the mask; it carries `data-reveal-word`. */
+  inner: string | undefined
+}
+
+/**
+ * `renderEmphasis` with every word wrapped for a mask-rise entrance: an outer
+ * mask and an inner span marked `data-reveal-word`. The spaces between words
+ * stay real text nodes, so the heading still reads as one sentence to assistive
+ * technology and wraps at the same points.
+ */
+export function renderRevealWords(text: string, classes: RevealWordClasses): ReactNode {
+  let key = 0
+  return text.split(/\*([^*]+)\*/).flatMap((part, index) =>
+    part.split(/(\s+)/).map((piece) => {
+      if (piece === '') return null
+      key += 1
+      if (/^\s+$/.test(piece)) return <Fragment key={key}>{piece}</Fragment>
+      const content = index % 2 === 1 ? <em>{piece}</em> : piece
+      return (
+        <span key={key} className={classes.word}>
+          <span className={classes.inner} data-reveal-word="">
+            {content}
+          </span>
+        </span>
+      )
+    }),
+  )
+}

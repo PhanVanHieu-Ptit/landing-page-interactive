@@ -1,45 +1,78 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import { fitCanvas } from '@/animation/canvas'
-import { drawLens, readLensPalette } from '@/animation/lens'
+import { DEFAULT_LENS_PARAMS, drawLens, readLensPalette, type LensParams } from '@/animation/lens'
+import { LENS_INTRO_START, playLensIntro, playStageEntrance } from '@/animation/stage-intro'
 import { useElementSize } from '@/hooks/useElementSize'
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { cx } from '@/lib/cx'
 import styles from './ProductStage.module.css'
 
 interface ProductStageProps {
   /** `| undefined` because CSS Module lookups are typed `string | undefined`. */
   className?: string | undefined
+  /** Play the entrance once: the lens fades in as its iris opens. Skipped under reduced motion. */
+  introduce?: boolean
 }
 
 /**
- * The hero product, drawn on a canvas: one static frame for now. The renderer
- * is parametric (see `LensParams`), so a later scroll-driven scene can animate
- * it without pre-rendered assets. The artwork is described by `aria-label`;
- * everything it says is also in the page text.
+ * The hero product, drawn on a canvas. The renderer is parametric (see
+ * `LensParams`), so it can be animated without pre-rendered assets: today by
+ * the one-shot entrance, later by a scroll-driven scene. The artwork is
+ * described by `aria-label`; everything it says is also in the page text.
  */
-export function ProductStage({ className }: ProductStageProps) {
+export function ProductStage({ className, introduce = false }: ProductStageProps) {
   const [wrapperRef, size] = useElementSize<HTMLDivElement>()
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const reducedMotion = usePrefersReducedMotion()
+  // Set when the iris has finished opening, so a later resize repaints the resting lens instead of replaying it.
+  const introduced = useRef(false)
+  const animate = introduce && !reducedMotion
+
+  // Before first paint, so the lens never shows at full strength for a frame.
+  useLayoutEffect(() => {
+    const wrapper = wrapperRef.current
+    if (!animate || !wrapper) return undefined
+    return playStageEntrance(wrapper)
+  }, [animate, wrapperRef])
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas || size.width < 1 || size.height < 1) return undefined
 
-    let cancelled = false
-    const paint = () => {
-      if (cancelled) return
-      const fitted = fitCanvas(canvas, size.width, size.height)
-      if (!fitted) return
-      drawLens(fitted.ctx, size.width, size.height, readLensPalette(canvas))
+    const fitted = fitCanvas(canvas, size.width, size.height)
+    if (!fitted) return undefined
+
+    const palette = readLensPalette(canvas)
+    let current: LensParams = DEFAULT_LENS_PARAMS
+    const paint = (params: LensParams) => {
+      current = params
+      drawLens(fitted.ctx, size.width, size.height, palette, params)
     }
 
-    paint()
+    let cancelIntro: (() => void) | undefined
+    if (animate && !introduced.current) {
+      paint(LENS_INTRO_START)
+      cancelIntro = playLensIntro(paint, () => {
+        introduced.current = true
+      })
+    } else {
+      paint(DEFAULT_LENS_PARAMS)
+    }
+
     // The engraved scale uses the mono webfont; repaint once it has loaded.
-    document.fonts.load('500 12px "JetBrains Mono"').then(paint, () => undefined)
+    let cancelled = false
+    document.fonts.load('500 12px "JetBrains Mono"').then(
+      () => {
+        if (!cancelled) paint(current)
+      },
+      () => undefined,
+    )
 
     return () => {
       cancelled = true
+      cancelIntro?.()
     }
-  }, [size.width, size.height])
+  }, [size.width, size.height, animate])
 
   return (
     <div ref={wrapperRef} className={cx(styles.stage, className)}>

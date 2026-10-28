@@ -40,3 +40,10 @@ export function readToken(element: Element, name: `--${string}`): string {
   if (!value) throw new Error(`Design token ${name} is not defined`)
   return value
 }
+
+/** Reads a duration token (`1200ms` or `1.2s`) as milliseconds. */
+export function readDurationMs(element: Element, name: `--${string}`): number {
+  const value = readToken(element, name)
+  const number = Number.parseFloat(value)
+  return value.endsWith('ms') ? number : number * 1000
+}

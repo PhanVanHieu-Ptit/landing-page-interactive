@@ -1,38 +1,87 @@
+/*
+ * The header floats over the top of this section (see SiteHeader), so the Hero
+ * is exactly one viewport tall and the product gets all of it.
+ *
+ * Layers, back to front: lighting, product, scrim, copy. `--hero-progress`
+ * (0 to 1, written by Hero.tsx while scrolling) lets the section ease away:
+ * the lens drifts down and the copy fades up. Unset (reduced motion, or before
+ * the first scroll), every calc() below falls back to the resting pose.
+ */
 .hero {
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-rows: auto 1fr;
-  min-block-size: calc(100vh - var(--header-h));
-  min-block-size: calc(100svh - var(--header-h));
+  grid-template-rows: 1fr;
+  min-block-size: 100vh;
+  min-block-size: 100svh;
   overflow: clip;
 }
 
-/* Warm key light behind the lens, a cool fill low on the left, and a soft vignette. */
+/* A warm key light centered behind the lens, a cool fill low on the left, and a soft vignette. */
 .lighting {
   position: absolute;
   inset: 0;
-  z-index: -2;
+  z-index: -3;
   background-image:
-    radial-gradient(70% 42% at 50% 20%, var(--color-accent-soft), transparent 72%), var(--light-rim),
+    radial-gradient(52% 44% at 50% 36%, var(--color-accent-soft), transparent 72%), var(--light-rim),
     var(--light-vignette);
+  opacity: calc(1 - var(--hero-progress, 0) * 0.8);
   pointer-events: none;
 }
 
-/* Mobile: the lens leads, the copy follows. */
-.stage {
-  grid-row: 1;
-  justify-self: center;
-  inline-size: min(100%, 34rem);
-  margin-block-start: var(--space-2);
+/* The lens is square and centered; its size is limited by the viewport's height as much as its width. */
+.stageFrame {
+  position: absolute;
+  inset-block-start: 31svh;
+  inset-inline: 0;
+  z-index: -2;
+  inline-size: min(92vw, 52svh);
+  margin-inline: auto;
+  translate: 0 calc(-50% + var(--hero-progress, 0) * 8svh);
+  scale: calc(1 - var(--hero-progress, 0) * 0.06);
+}
+
+/*
+ * Darkens the top (so the transparent header stays readable) and the bottom
+ * (so the headline stays readable over the lens). The bottom layer ends on
+ * exactly `--color-bg`, which is what the next section starts with: no seam.
+ * Its stops approximate an ease, so the fade has no visible edge, and its
+ * reach is a size so it can grow where the copy takes more of the screen.
+ */
+.scrim {
+  --scrim-reach: 88%;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-bg) 72%, transparent), transparent),
+    linear-gradient(
+      to top,
+      var(--color-bg) 0%,
+      color-mix(in srgb, var(--color-bg) 95%, transparent) 15%,
+      color-mix(in srgb, var(--color-bg) 82%, transparent) 33%,
+      color-mix(in srgb, var(--color-bg) 56%, transparent) 51%,
+      color-mix(in srgb, var(--color-bg) 26%, transparent) 69%,
+      color-mix(in srgb, var(--color-bg) 8%, transparent) 87%,
+      transparent
+    );
+  background-position:
+    top,
+    bottom;
+  background-size:
+    100% calc(var(--header-h) + 3rem),
+    100% var(--scrim-reach);
+  background-repeat: no-repeat;
+  pointer-events: none;
 }
 
 .inner {
-  grid-row: 2;
   display: grid;
   grid-template-rows: 1fr auto;
-  row-gap: var(--space-8);
-  padding-block: var(--space-5) var(--space-6);
+  row-gap: var(--space-5);
+  padding-block: calc(var(--header-h) + var(--space-5)) var(--space-6);
+  opacity: calc(1 - var(--hero-progress, 0) * 1.6);
+  translate: 0 calc(var(--hero-progress, 0) * -3rem);
 }
 
 .copy {
@@ -49,11 +98,35 @@
 .title {
   margin: 0;
   max-inline-size: 6.4em;
+  font-size: var(--text-hero);
+}
+
+/*
+ * Each headline word sits in a mask, and the entrance slides it up from below
+ * the mask's edge. The block padding and equal negative margin leave room for
+ * ascenders and descenders that the tight line height would otherwise slice
+ * off; the inline pair does the same for the overhang of italic letters.
+ */
+.word {
+  display: inline-block;
+  padding: 0.12em 0.06em;
+  margin: -0.12em -0.06em;
+  overflow: clip;
+  vertical-align: top;
+}
+
+.wordInner {
+  display: inline-block;
+}
+
+.foot {
+  display: grid;
+  gap: var(--space-5);
+  justify-items: start;
 }
 
 .lede {
   max-inline-size: 34ch;
-  margin-block-end: var(--space-2);
 }
 
 .rail {
@@ -63,37 +136,36 @@
   gap: var(--space-5);
 }
 
-/* Desktop: the lens grows and bleeds off the right edge, with the copy at the bottom left. */
+/* Tablet: the lede and the call to action share a row. */
+@media (min-width: 48rem) {
+  .scrim {
+    --scrim-reach: 78%;
+  }
+
+  .stageFrame {
+    inset-block-start: 34svh;
+    inline-size: min(80vw, 58svh);
+  }
+
+  .foot {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    justify-self: stretch;
+    column-gap: var(--space-7);
+  }
+
+  .cta {
+    justify-self: end;
+  }
+}
+
+/* Desktop: a larger, higher lens, with the scroll cue in the middle of the rail, clear of the copy. */
 @media (min-width: 64rem) {
-  .hero {
-    grid-template-rows: 1fr;
+  .stageFrame {
+    inset-block-start: 40svh;
+    inline-size: min(62vw, 74svh);
   }
 
-  .lighting {
-    background-image: var(--light-key), var(--light-rim), var(--light-vignette);
-  }
-
-  /*
-   * Three limits, whichever is smallest: 60% of the viewport width, 86% of its
-   * height, and whatever width keeps the lens clear of the headline. The
-   * headline measures ~4.8 display-sizes wide, so the third term can never be
-   * outrun by a viewport that is wide but short on text room.
-   */
-  .stage {
-    position: absolute;
-    inset-block-start: 50%;
-    inset-inline-end: -4vw;
-    z-index: -1;
-    inline-size: min(60vw, 86svh, calc(104vw - var(--gutter) - 4.9 * var(--text-display) - var(--space-6)));
-    translate: 0 -50%;
-  }
-
-  .inner {
-    grid-row: 1;
-    padding-block: var(--space-9) var(--space-6);
-  }
-
-  /* The scroll cue moves to the middle of the rail, clear of the lens. */
   .rail {
     display: grid;
     grid-template-columns: 1fr auto 1fr;

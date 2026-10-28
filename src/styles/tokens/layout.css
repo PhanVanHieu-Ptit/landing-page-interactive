@@ -7,7 +7,7 @@
  *
  *   sm 40rem   large phones, landscape
  *   md 48rem   tablet: inline navigation, two-column grids
- *   lg 64rem   desktop: the hero becomes two-column
+ *   lg 64rem   desktop: a larger hero lens and four-column grids
  *   xl 80rem   wide desktop: the container stops growing
  */
 :root {
