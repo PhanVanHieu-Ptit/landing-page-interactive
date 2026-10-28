@@ -1,0 +1,40 @@
+/*
+ * Typography tokens.
+ *
+ * The scale is fluid: each step interpolates linearly between a 360px and a
+ * 1440px viewport, then holds. (min → max px in the comment beside each step.)
+ * Roles are bound to these steps in ../type.css.
+ */
+:root {
+  --font-display: 'Instrument Serif', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* Weights. Instrument Serif ships a single 400, so display text never asks for more. */
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  --text-xs: clamp(0.6875rem, 0.6667rem + 0.0926vw, 0.75rem); /* 11 → 12  mono eyebrow */
+  --text-sm: clamp(0.8125rem, 0.7917rem + 0.0926vw, 0.875rem); /* 13 → 14  nav, captions */
+  --text-base: clamp(1rem, 0.9583rem + 0.1852vw, 1.125rem); /* 16 → 18  body */
+  --text-lg: clamp(1.125rem, 1.0625rem + 0.2778vw, 1.3125rem); /* 18 → 21  lede */
+  --text-xl: clamp(1.375rem, 1.25rem + 0.5556vw, 1.75rem); /* 22 → 28  large lede */
+  --text-2xl: clamp(1.75rem, 1.5rem + 1.1111vw, 2.5rem); /* 28 → 40  h3 */
+  --text-3xl: clamp(2.25rem, 1.75rem + 2.2222vw, 3.75rem); /* 36 → 60  h2 */
+  --text-4xl: clamp(2.75rem, 1.9167rem + 3.7037vw, 5.25rem); /* 44 → 84  closing statement */
+  --text-display: clamp(3.25rem, 1.8333rem + 6.2963vw, 7.5rem); /* 52 → 120 h1 */
+  --text-ghost: clamp(6rem, 24vw, 24rem); /* decorative footer wordmark only */
+
+  --leading-display: 0.94;
+  --leading-title: 1.04;
+  --leading-snug: 1.2;
+  --leading-lede: 1.5;
+  --leading-body: 1.6;
+
+  --tracking-display: -0.025em;
+  --tracking-title: -0.018em;
+  --tracking-normal: 0;
+  --tracking-label: 0.14em;
+}

@@ -1,0 +1,19 @@
+/*
+ * Shape tokens. The direction is editorial, so corners stay nearly square;
+ * the pill is reserved for rare, small affordances. Shadows are soft and dark:
+ * on a near-black page, depth comes from light, not from drop shadows.
+ */
+:root {
+  --radius-none: 0;
+  --radius-xs: 2px; /* buttons */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  --border-hairline: 1px;
+
+  --shadow-soft: 0 24px 64px -28px rgb(0 0 0 / 0.7);
+  --shadow-lift:
+    inset 0 1px 0 color-mix(in srgb, var(--ivory-100) 7%, transparent), 0 18px 40px -22px rgb(0 0 0 / 0.8);
+}

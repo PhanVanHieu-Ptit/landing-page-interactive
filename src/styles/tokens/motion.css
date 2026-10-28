@@ -1,0 +1,30 @@
+/*
+ * Motion tokens. Everything animates through these, so the global
+ * reduced-motion rule below (plus the safety net in ../reset.css) is enough
+ * to quiet the whole interface.
+ */
+:root {
+  --duration-instant: 80ms;
+  --duration-fast: 160ms; /* color and opacity feedback */
+  --duration-base: 280ms; /* underlines, small moves */
+  --duration-slow: 520ms; /* indicators, panels */
+  --duration-slower: 800ms;
+  --duration-cinematic: 1200ms; /* reserved for scene-level moves */
+
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1); /* the default: quick start, long soft landing */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-in: cubic-bezier(0.5, 0, 0.75, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-instant: 1ms;
+    --duration-fast: 1ms;
+    --duration-base: 1ms;
+    --duration-slow: 1ms;
+    --duration-slower: 1ms;
+    --duration-cinematic: 1ms;
+  }
+}

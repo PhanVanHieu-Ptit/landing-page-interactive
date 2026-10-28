@@ -1,0 +1,25 @@
+.section {
+  position: relative;
+  isolation: isolate;
+  padding-block: var(--space-section);
+  overflow: clip;
+  text-align: center;
+}
+
+.glow {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: radial-gradient(50% 55% at 50% 50%, var(--color-accent-soft), transparent 72%);
+  pointer-events: none;
+}
+
+.inner {
+  display: grid;
+  gap: var(--space-7);
+  justify-items: center;
+}
+
+.body {
+  max-inline-size: 40ch;
+}

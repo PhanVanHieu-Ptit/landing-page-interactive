@@ -1,0 +1,14 @@
+/*
+ * Global stylesheet entry. Cascade layers fix the order independent of import
+ * order: reset < base < type < utilities. Component CSS Modules are unlayered,
+ * so they always win over everything here (except the reduced-motion safety
+ * net in reset.css, which is `!important` on purpose).
+ */
+@layer reset, base, type, utilities;
+
+@import './fonts.css';
+@import './tokens/index.css';
+@import './reset.css';
+@import './base.css';
+@import './type.css';
+@import './utilities.css';

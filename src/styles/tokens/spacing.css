@@ -1,0 +1,20 @@
+/*
+ * Spacing tokens: a 4px base, with a steep step at the top end so
+ * whitespace can be generous without inventing one-off values.
+ */
+:root {
+  --space-1: 0.25rem; /*   4 */
+  --space-2: 0.5rem; /*   8 */
+  --space-3: 0.75rem; /*  12 */
+  --space-4: 1rem; /*  16 */
+  --space-5: 1.5rem; /*  24 */
+  --space-6: 2rem; /*  32 */
+  --space-7: 3rem; /*  48 */
+  --space-8: 4rem; /*  64 */
+  --space-9: 6rem; /*  96 */
+  --space-10: 8rem; /* 128 */
+
+  /* Fluid, 360px → 1440px viewport */
+  --space-section: clamp(6rem, 4rem + 8.8889vw, 12rem); /*  96 → 192  vertical rhythm between sections */
+  --gutter: clamp(1.25rem, 0.6667rem + 2.5926vw, 3rem); /*  20 →  48  page side padding */
+}

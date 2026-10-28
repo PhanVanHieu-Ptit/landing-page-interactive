@@ -1,0 +1,104 @@
+/*
+ * Text styles: each role binds family, weight, size, leading and tracking to
+ * tokens so the hierarchy stays consistent everywhere. Apply them alongside a
+ * component class; component CSS is unlayered, so it can still adjust margins,
+ * color and so on without a specificity fight.
+ *
+ *   type-display     h1, the hero statement
+ *   type-title-xl    the closing statement
+ *   type-title       h2
+ *   type-subtitle    h3
+ *   type-lede        introductory paragraph
+ *   type-body        running text
+ *   type-body-sm     captions, footer copy
+ *   type-eyebrow     mono label: tracked, uppercase
+ *   type-figure      sans-light numerals, for values like "T1.4 – T16" (the display serif's "1" reads as "l")
+ *   type-data        mono values: tabular figures
+ */
+@layer type {
+  .type-display,
+  .type-title-xl,
+  .type-title,
+  .type-subtitle {
+    font-family: var(--font-display);
+    font-weight: var(--weight-regular);
+  }
+
+  .type-display {
+    font-size: var(--text-display);
+    line-height: var(--leading-display);
+    letter-spacing: var(--tracking-display);
+  }
+
+  .type-title-xl {
+    font-size: var(--text-4xl);
+    line-height: var(--leading-title);
+    letter-spacing: var(--tracking-title);
+  }
+
+  .type-title {
+    font-size: var(--text-3xl);
+    line-height: var(--leading-title);
+    letter-spacing: var(--tracking-title);
+  }
+
+  .type-subtitle {
+    font-size: var(--text-2xl);
+    line-height: var(--leading-snug);
+    letter-spacing: var(--tracking-title);
+  }
+
+  /* One italic word per heading carries the emphasis. */
+  :is(.type-display, .type-title-xl, .type-title, .type-subtitle) em {
+    font-style: italic;
+  }
+
+  .type-lede {
+    font-family: var(--font-sans);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-regular);
+    line-height: var(--leading-lede);
+    color: var(--color-text-secondary);
+  }
+
+  .type-body {
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: var(--leading-body);
+    color: var(--color-text-secondary);
+  }
+
+  .type-body-sm {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    line-height: var(--leading-body);
+    color: var(--color-text-secondary);
+  }
+
+  .type-eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    line-height: 1.4;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+  }
+
+  .type-figure {
+    font-family: var(--font-sans);
+    font-size: var(--text-xl);
+    font-weight: var(--weight-light);
+    line-height: var(--leading-snug);
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .type-data {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-regular);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+}

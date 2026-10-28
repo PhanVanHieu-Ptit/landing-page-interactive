@@ -1,0 +1,47 @@
+.heading {
+  display: grid;
+  gap: var(--space-5);
+  justify-items: start;
+}
+
+.center {
+  justify-items: center;
+  text-align: center;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin: 0;
+  white-space: nowrap;
+}
+
+.index {
+  color: var(--color-accent);
+}
+
+/*
+ * A hairline that is strongest at the label and fades away from it. Centered
+ * headings get one on each side. Its width is definite, so it counts toward
+ * the eyebrow's intrinsic size and the label never has to wrap around it.
+ */
+.rule {
+  flex: none;
+  inline-size: clamp(2rem, 12vw, 8rem);
+  block-size: var(--border-hairline);
+  background: linear-gradient(90deg, var(--color-line-strong), transparent);
+}
+
+.ruleLead {
+  background: linear-gradient(270deg, var(--color-line-strong), transparent);
+}
+
+.title {
+  margin: 0;
+  max-inline-size: 14em;
+}
+
+.lede {
+  max-inline-size: 38ch;
+}

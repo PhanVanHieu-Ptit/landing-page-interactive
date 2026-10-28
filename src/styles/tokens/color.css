@@ -1,0 +1,78 @@
+/*
+ * Color tokens, in two tiers:
+ *   1. Primitives (--charcoal-*, --ivory-*, --amber-*, --steel-*): the raw palette.
+ *      Only this file and the lens renderer read them.
+ *   2. Semantic roles (--color-*, --light-*): what components consume.
+ *
+ * Contrast (WCAG 2.x), measured on --color-bg unless noted:
+ *   text-primary   16.96:1     text-secondary  8.89:1
+ *   text-tertiary   5.55:1 (4.67:1 on surface-raised, the weakest pairing)
+ *   accent          8.80:1     focus ring      8.80:1
+ *   button label on ivory 16.96:1, on accent-strong 11.45:1
+ * Hairlines (--color-line*) are decorative: they never carry information alone.
+ */
+:root {
+  /* Primitives: warm-neutral charcoal, darkest to lightest */
+  --charcoal-950: #0a0a0b;
+  --charcoal-900: #101012;
+  --charcoal-850: #161618;
+  --charcoal-800: #1e1e21;
+  --charcoal-700: #2a2a2e;
+
+  /* Primitives: warm ivory, used for text */
+  --ivory-100: #f2ede3;
+  --ivory-300: #b4ada1;
+  --ivory-500: #8d877d;
+
+  /* Primitives: tungsten amber accent, and a cool steel kept for rim light only */
+  --amber-400: #ecbd7e;
+  --amber-500: #d9a35b;
+  --steel-300: #9fb2c6;
+
+  /* Background and surface */
+  --color-bg: var(--charcoal-950);
+  --color-bg-elevated: var(--charcoal-900);
+  --color-surface: var(--charcoal-850);
+  --color-surface-raised: var(--charcoal-800);
+  --color-scrim: color-mix(in srgb, var(--charcoal-950) 72%, transparent);
+
+  /* Primary, secondary and tertiary text */
+  --color-text-primary: var(--ivory-100);
+  --color-text-secondary: var(--ivory-300);
+  --color-text-tertiary: var(--ivory-500);
+  --color-text-inverse: var(--charcoal-950);
+
+  /* Accent */
+  --color-accent: var(--amber-500);
+  --color-accent-strong: var(--amber-400);
+  --color-accent-soft: color-mix(in srgb, var(--amber-500) 16%, transparent);
+  --color-rim: var(--steel-300);
+
+  /* Lines, focus and selection */
+  --color-line: color-mix(in srgb, var(--ivory-100) 9%, transparent);
+  --color-line-strong: color-mix(in srgb, var(--ivory-100) 18%, transparent);
+  --color-focus: var(--color-accent);
+  --color-selection: color-mix(in srgb, var(--amber-500) 34%, transparent);
+
+  /* Lighting: warm key behind the product, cool fill low-left, soft vignette */
+  --light-key: radial-gradient(
+    55% 60% at 68% 46%,
+    color-mix(in srgb, var(--amber-500) 17%, transparent),
+    transparent 72%
+  );
+  --light-rim: radial-gradient(
+    42% 46% at 10% 94%,
+    color-mix(in srgb, var(--steel-300) 9%, transparent),
+    transparent 70%
+  );
+  --light-vignette: radial-gradient(120% 100% at 50% 38%, transparent 52%, rgb(0 0 0 / 0.5) 100%);
+
+  /* A hairline that fades out at both ends: the system's signature divider */
+  --rule-fade: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-line-strong) 18%,
+    var(--color-line-strong) 82%,
+    transparent
+  );
+}
