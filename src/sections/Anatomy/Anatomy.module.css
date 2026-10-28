@@ -1,0 +1,73 @@
+.section {
+  padding-block: var(--space-section);
+}
+
+.rows {
+  margin-block-start: var(--space-9);
+  border-block-end: var(--border-hairline) solid var(--color-line);
+}
+
+.row {
+  display: grid;
+  gap: var(--space-4);
+  padding-block: var(--space-7);
+  border-block-start: var(--border-hairline) solid var(--color-line);
+}
+
+.lead {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.index {
+  color: var(--color-accent);
+}
+
+.title {
+  margin: 0;
+}
+
+.detail {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.body {
+  max-inline-size: 44ch;
+}
+
+.fact {
+  color: var(--color-text-tertiary);
+}
+
+/* Tablet: title left, detail right. */
+@media (min-width: 48rem) {
+  .row {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    column-gap: var(--space-6);
+    align-items: baseline;
+    padding-block: var(--space-8);
+  }
+
+  .lead {
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    align-items: baseline;
+    column-gap: 0;
+  }
+}
+
+/* Desktop: the same four columns and gap as the Specifications grid, so the detail lines up with its third column. */
+@media (min-width: 64rem) {
+  .row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    column-gap: var(--space-8);
+  }
+
+  .lead {
+    grid-column: 1 / 3;
+  }
+
+  .detail {
+    grid-column: 3 / 5;
+  }
+}

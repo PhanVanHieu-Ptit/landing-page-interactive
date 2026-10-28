@@ -1,0 +1,58 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  min-block-size: 3rem;
+  padding-inline: var(--space-6);
+  border-radius: var(--radius-xs);
+  background-color: var(--color-text-primary);
+  color: var(--color-text-inverse);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
+}
+
+.sm {
+  min-block-size: 2.75rem;
+  padding-inline: var(--space-5);
+}
+
+.icon {
+  flex: none;
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+  transition: transform var(--duration-base) var(--ease-out-quint);
+}
+
+@media (hover: hover) {
+  .button:hover {
+    background-color: var(--color-accent-strong);
+  }
+
+  .button:hover .icon {
+    transform: translateX(4px);
+  }
+}
+
+.button:focus-visible .icon {
+  transform: translateX(4px);
+}
+
+.button:active {
+  transform: scale(0.985);
+}
+
+/* Windows high-contrast mode drops background colors; keep a visible edge. */
+@media (forced-colors: active) {
+  .button {
+    border: var(--border-hairline) solid ButtonText;
+  }
+}

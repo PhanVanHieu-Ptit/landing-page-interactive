@@ -1,0 +1,94 @@
+.nav {
+  display: block;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-block-size: 2.75rem;
+  color: var(--color-text-secondary);
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+/* Underline reveal: grows from the left. */
+.link::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0.5rem;
+  block-size: var(--border-hairline);
+  background-color: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--duration-base) var(--ease-out-quint);
+}
+
+/* Header: large serif rows in the mobile panel... */
+.header .link {
+  padding-block: var(--space-4);
+  border-block-end: var(--border-hairline) solid var(--color-line);
+  color: var(--color-text-primary);
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  line-height: var(--leading-snug);
+}
+
+.header .link::after {
+  display: none;
+}
+
+/* ...compact inline links from tablet up. */
+@media (min-width: 48rem) {
+  .header .list {
+    flex-direction: row;
+    gap: var(--space-7);
+  }
+
+  .header .link {
+    padding-block: 0;
+    border-block-end: 0;
+    color: var(--color-text-secondary);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    letter-spacing: 0.04em;
+  }
+
+  .header .link::after {
+    display: block;
+  }
+}
+
+/* Footer: a compact column. */
+.footer .list {
+  gap: var(--space-1);
+}
+
+.footer .link {
+  min-block-size: 2.25rem;
+  font-size: var(--text-sm);
+}
+
+/* Interaction states come last, with `.nav` in the selector so they outrank the variant rules above. */
+@media (hover: hover) {
+  .nav .link:hover {
+    color: var(--color-text-primary);
+  }
+
+  .nav .link:hover::after {
+    transform: scaleX(1);
+  }
+}
+
+.nav .link:focus-visible {
+  color: var(--color-text-primary);
+}
+
+.nav .link:focus-visible::after {
+  transform: scaleX(1);
+}

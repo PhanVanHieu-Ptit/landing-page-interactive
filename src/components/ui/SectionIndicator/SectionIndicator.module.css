@@ -1,0 +1,30 @@
+.indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.numeral {
+  font-variant-numeric: tabular-nums;
+}
+
+.current {
+  color: var(--color-text-primary);
+}
+
+.track {
+  position: relative;
+  inline-size: clamp(5rem, 14vw, 11rem);
+  block-size: var(--border-hairline);
+  background-color: var(--color-line-strong);
+  overflow: hidden;
+}
+
+.fill {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-accent);
+  transform: scaleX(var(--progress, 0));
+  transform-origin: left center;
+  transition: transform var(--duration-slow) var(--ease-out-quint);
+}

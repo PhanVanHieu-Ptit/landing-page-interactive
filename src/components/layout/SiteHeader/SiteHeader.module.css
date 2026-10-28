@@ -1,0 +1,105 @@
+.header {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--z-header);
+  border-block-end: var(--border-hairline) solid var(--color-line);
+  background-color: var(--color-scrim);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  backdrop-filter: blur(14px) saturate(1.1);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  block-size: var(--header-h);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text-primary);
+}
+
+.mark {
+  flex: none;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  color: var(--color-accent);
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+
+.toggle {
+  min-block-size: 2.75rem;
+  /* Pull the label's visual edge back onto the container rail. */
+  margin-inline-end: calc(var(--space-3) * -1);
+  padding-inline: var(--space-3);
+  color: var(--color-text-primary);
+}
+
+/*
+ * Mobile: the menu is a panel under the header. Closed, it is `visibility:
+ * hidden`, so its links leave the tab order and the accessibility tree; the
+ * delayed visibility transition lets the fade-out finish first.
+ */
+.menu {
+  position: absolute;
+  inset-inline: 0;
+  /* `100%` is the header's padding edge, just above its bottom border; start below it so the hairline stays visible. */
+  inset-block-start: calc(100% + var(--border-hairline));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-2) var(--gutter) var(--space-7);
+  border-block-end: var(--border-hairline) solid var(--color-line);
+  background-color: var(--color-bg);
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-0.5rem);
+  transition:
+    opacity var(--duration-base) var(--ease-out-quint),
+    transform var(--duration-base) var(--ease-out-quint),
+    visibility 0s linear var(--duration-base);
+}
+
+.header[data-menu-open] .menu {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  transition-delay: 0s;
+}
+
+.cta {
+  align-self: stretch;
+}
+
+@media (min-width: 48rem) {
+  .toggle {
+    display: none;
+  }
+
+  .menu {
+    position: static;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-7);
+    padding: 0;
+    border-block-end: 0;
+    background: none;
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .cta {
+    align-self: auto;
+  }
+}

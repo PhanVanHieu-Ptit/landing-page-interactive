@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0a0a0b" />
+
+    <title>The Aurelle 50: a hand-built cinema prime</title>
+    <meta
+      name="description"
+      content="The Aurelle 50 is a hand-assembled 50 mm T1.4 cinema prime: eleven elements, fifteen iris blades and one machined barrel."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="The Aurelle 50: a hand-built cinema prime" />
+    <meta
+      property="og:description"
+      content="Eleven elements, fifteen iris blades and one machined barrel. A fictional brand created for this demonstration."
+    />
+    <meta name="twitter:card" content="summary" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- The hero headline (roman and italic) and body text paint first, so those fonts start loading immediately. -->
+    <link rel="preload" href="/src/assets/fonts/instrument-serif-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/src/assets/fonts/instrument-serif-latin-400-italic.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/src/assets/fonts/inter-latin-variable.woff2" as="font" type="font/woff2" crossorigin />
+
+    <style>
+      /* Paint the dark page at once, so there is no white flash before the stylesheet arrives. Mirrors --color-bg and --color-text-primary. */
+      html {
+        background: #0a0a0b;
+        color: #f2ede3;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>This page needs JavaScript to render.</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

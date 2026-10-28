@@ -1,0 +1,9 @@
+/* The parent decides the size and position; the stage only keeps itself square. */
+.stage {
+  aspect-ratio: 1;
+}
+
+.canvas {
+  inline-size: 100%;
+  block-size: 100%;
+}

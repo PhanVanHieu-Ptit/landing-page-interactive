@@ -1,0 +1,53 @@
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    background-color: var(--color-bg);
+    scroll-padding-top: calc(var(--header-h) + var(--space-5));
+    scrollbar-color: var(--color-line-strong) transparent;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  body {
+    min-block-size: 100vh;
+    min-block-size: 100svh;
+    background-color: var(--color-bg);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    font-weight: var(--weight-regular);
+    line-height: var(--leading-body);
+    font-synthesis: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* `clip`, not `hidden`: clipping must not turn <body> into a scroll container (it would break position: sticky). */
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background-color: var(--color-selection);
+    color: var(--color-text-primary);
+  }
+
+  /*
+   * One focus style for every interactive element. A 3px offset keeps the ring
+   * on the page or surface color (8.8:1), never on a light fill like the
+   * ivory button, where an accent ring would drop to 1.9:1.
+   */
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 3px;
+  }
+
+  /* The skip link moves focus to <main>; a ring around the whole page is noise. */
+  main:focus-visible {
+    outline: none;
+  }
+}

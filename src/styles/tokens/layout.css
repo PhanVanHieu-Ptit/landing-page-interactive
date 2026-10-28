@@ -1,0 +1,38 @@
+/*
+ * Layout tokens.
+ *
+ * Breakpoints are mobile-first. CSS cannot read custom properties inside
+ * @media, so these tokens are the documented, JS-readable source of truth and
+ * every query in the codebase repeats the same literal rem value:
+ *
+ *   sm 40rem   large phones, landscape
+ *   md 48rem   tablet: inline navigation, two-column grids
+ *   lg 64rem   desktop: the hero becomes two-column
+ *   xl 80rem   wide desktop: the container stops growing
+ */
+:root {
+  --bp-sm: 40rem;
+  --bp-md: 48rem;
+  --bp-lg: 64rem;
+  --bp-xl: 80rem;
+
+  --container-max: 80rem;
+  --container-narrow: 46rem;
+
+  --header-h: 4rem;
+
+  /* Stacking order */
+  --z-base: 0;
+  --z-stage: 1;
+  --z-content: 2;
+  --z-header: 50;
+  --z-overlay: 80;
+  --z-preloader: 90;
+  --z-skip: 100;
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --header-h: 4.5rem;
+  }
+}

@@ -1,0 +1,134 @@
+.footer {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  background-color: var(--color-bg);
+}
+
+.rule {
+  block-size: var(--border-hairline);
+  background: var(--rule-fade);
+}
+
+.top {
+  display: grid;
+  gap: var(--space-8);
+  padding-block: var(--space-9) var(--space-8);
+}
+
+.brand {
+  display: grid;
+  gap: var(--space-4);
+  align-content: start;
+}
+
+.lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text-primary);
+}
+
+.mark {
+  flex: none;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  color: var(--color-accent);
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+
+.tagline {
+  max-inline-size: 14ch;
+  color: var(--color-text-secondary);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  line-height: var(--leading-snug);
+}
+
+.group {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+  font-style: normal;
+}
+
+.groupLabel {
+  margin-block-end: var(--space-2);
+  color: var(--color-text-tertiary);
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: 2.25rem;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+.toTop {
+  inline-size: fit-content;
+}
+
+.arrow {
+  inline-size: 1rem;
+  block-size: 1rem;
+  transition: transform var(--duration-base) var(--ease-out-quint);
+}
+
+@media (hover: hover) {
+  .link:hover {
+    color: var(--color-text-primary);
+  }
+
+  .toTop:hover .arrow {
+    transform: translateY(-3px);
+  }
+}
+
+.link:focus-visible {
+  color: var(--color-text-primary);
+}
+
+.legal {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-6);
+  padding-block: var(--space-6);
+  border-block-start: var(--border-hairline) solid var(--color-line);
+}
+
+/* Decorative: the brand name, huge and fading out, cropped by the footer's bottom edge. */
+.ghost {
+  margin-block: var(--space-4) -0.16em;
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-text-primary) 11%, transparent),
+    transparent 82%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-family: var(--font-display);
+  font-size: var(--text-ghost);
+  line-height: 0.8;
+  text-align: center;
+  white-space: nowrap;
+  user-select: none;
+  pointer-events: none;
+}
+
+@media (min-width: 48rem) {
+  .top {
+    grid-template-columns: minmax(0, 5fr) repeat(2, minmax(0, 3fr));
+    column-gap: var(--space-7);
+  }
+}

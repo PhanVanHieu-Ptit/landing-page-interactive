@@ -1,0 +1,53 @@
+.hint {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  min-block-size: 2.75rem;
+  color: var(--color-text-secondary);
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+@media (hover: hover) {
+  .hint:hover {
+    color: var(--color-text-primary);
+  }
+}
+
+.line {
+  position: relative;
+  inline-size: var(--border-hairline);
+  block-size: 3rem;
+  background-color: var(--color-line-strong);
+  overflow: hidden;
+}
+
+/* A slow pulse of light traveling down the line. */
+.line::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-text-primary);
+  transform: translateY(-100%);
+}
+
+/* Motion is opt-in: with reduced motion the line simply stays still. */
+@media (prefers-reduced-motion: no-preference) {
+  .line::after {
+    animation: travel 2.6s var(--ease-in-out) infinite;
+  }
+}
+
+@keyframes travel {
+  0% {
+    transform: translateY(-100%);
+  }
+
+  55% {
+    transform: translateY(0);
+  }
+
+  100% {
+    transform: translateY(100%);
+  }
+}
