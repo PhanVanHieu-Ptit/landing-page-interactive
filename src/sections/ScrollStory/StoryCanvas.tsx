@@ -9,6 +9,8 @@ interface StoryCanvasProps {
   className?: string | undefined
   /** Cap on canvas pixels per CSS pixel. */
   maxDpr: number
+  /** Cap on the canvas's total pixels: it is redrawn in full every frame. `undefined` takes the default budget. */
+  maxPixels?: number | undefined
   /**
    * Hands over the painter once the canvas has a size, and again whenever it
    * is replaced (a resize, a new cap); null when it goes away. The story
@@ -18,7 +20,7 @@ interface StoryCanvasProps {
 }
 
 /** The story's canvas. It fills its parent and only owns sizing; what to draw, and when, is decided elsewhere. */
-export function StoryCanvas({ className, maxDpr, onRenderer }: StoryCanvasProps) {
+export function StoryCanvas({ className, maxDpr, maxPixels, onRenderer }: StoryCanvasProps) {
   const [wrapperRef, size] = useElementSize<HTMLDivElement>()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   // The latest callback, without making it a dependency: a new function must not rebuild the renderer.
@@ -31,7 +33,7 @@ export function StoryCanvas({ className, maxDpr, onRenderer }: StoryCanvasProps)
     const canvas = canvasRef.current
     if (!canvas || size.width < 1 || size.height < 1) return undefined
 
-    const renderer = createLensRenderer(canvas, size.width, size.height, { maxDpr })
+    const renderer = createLensRenderer(canvas, size.width, size.height, { maxDpr, maxPixels })
     if (!renderer) return undefined
 
     onRendererRef.current(renderer)
@@ -39,7 +41,7 @@ export function StoryCanvas({ className, maxDpr, onRenderer }: StoryCanvasProps)
       renderer.dispose()
       onRendererRef.current(null)
     }
-  }, [size.width, size.height, maxDpr])
+  }, [size.width, size.height, maxDpr, maxPixels])
 
   return (
     <div ref={wrapperRef} className={cx(styles.frame, className)}>

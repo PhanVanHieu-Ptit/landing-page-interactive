@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -12,5 +12,10 @@ export default defineConfig({
   css: {
     // Write kebab-case or camelCase class names in CSS; read them as camelCase in TSX.
     modules: { localsConvention: 'camelCaseOnly' },
+  },
+  test: {
+    // Pure logic and fakes only; nothing here needs a DOM. Browser behavior is checked in a real browser.
+    environment: 'node',
+    include: ['src/**/*.test.ts'],
   },
 })

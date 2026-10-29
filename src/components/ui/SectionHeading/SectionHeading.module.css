@@ -35,6 +35,8 @@
 
 .ruleLead {
   background: linear-gradient(270deg, var(--color-line-strong), transparent);
+  /* Draws outward from the label, like its mirror image on the other side. */
+  --reveal-origin: right center;
 }
 
 .title {

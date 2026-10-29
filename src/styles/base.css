@@ -25,6 +25,10 @@
     font-weight: var(--weight-regular);
     line-height: var(--leading-body);
     font-synthesis: none;
+    font-kerning: normal;
+    font-feature-settings: 'kern', 'liga';
+    /* Quotes and brackets at the start of a line sit outside the measure (Safari only; harmless elsewhere). */
+    hanging-punctuation: first;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     /* `clip`, not `hidden`: clipping must not turn <body> into a scroll container (it would break position: sticky). */

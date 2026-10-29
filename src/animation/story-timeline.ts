@@ -25,6 +25,10 @@ export interface StoryChapterSpec {
   readonly enter?: number
   /** Length of the copy's fade-out. The last chapter never fades out: the story ends on it. */
   readonly exit?: number
+  /**
+   * `[first, last]`: the zero-based, inclusive frames of an image sequence that play across this chapter's range. Only a sequence-backed story reads it (see `story-frames.ts`); this timeline ignores it. Left out, the chapter takes an even share of the frames its neighbors leave over.
+   */
+  readonly frames?: readonly [first: number, last: number]
   /** `in` is the lens pose once the copy has faded in; `out` is the pose as it starts to leave. `out` defaults to `in` (a hold). */
   readonly pose: { readonly in: LensPose; readonly out?: LensPose }
 }

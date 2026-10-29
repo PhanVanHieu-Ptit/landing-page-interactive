@@ -2,20 +2,44 @@
  * Motion tokens. Everything animates through these, so the global
  * reduced-motion rule below (plus the safety net in ../reset.css) is enough
  * to quiet the whole interface.
+ *
+ * Durations are roles, not free choices. Pick the one that matches what moves:
+ *
+ *   fast      160  color and opacity feedback (hover, focus)
+ *   base      280  small movement: underlines, arrows, rings
+ *   slow      520  swaps and indicators: chapter labels, panels
+ *   slower    800  text and content reveals
+ *   cinematic 1200 scene-level moves: the Hero stage, large glows
+ *   ambient   2600 looping idle cues (the scroll hint)
+ *
+ * No easing overshoots: every curve here lands softly and stays put.
  */
 :root {
   --duration-instant: 80ms;
-  --duration-fast: 160ms; /* color and opacity feedback */
-  --duration-base: 280ms; /* underlines, small moves */
-  --duration-slow: 520ms; /* indicators, panels */
+  --duration-fast: 160ms;
+  --duration-base: 280ms;
+  --duration-slow: 520ms;
   --duration-slower: 800ms;
-  --duration-cinematic: 1200ms; /* reserved for scene-level moves */
+  --duration-cinematic: 1200ms;
+  --duration-ambient: 2600ms;
 
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1); /* the default: quick start, long soft landing */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-in: cubic-bezier(0.5, 0, 0.75, 0);
+
+  /* Reveals (see ../reveal.css): one duration, one curve, one rise for every piece of text that enters. */
+  --reveal-duration: var(--duration-slower);
+  --reveal-ease: var(--ease-out-expo);
+  --reveal-rise: 1rem;
+
+  /*
+   * Stagger. Each item waits `--i` steps (capped at `--stagger-max`, so a long
+   * heading never drags the section out) after the group it belongs to.
+   */
+  --stagger-step: 80ms;
+  --stagger-max: 10;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -26,5 +50,7 @@
     --duration-slow: 1ms;
     --duration-slower: 1ms;
     --duration-cinematic: 1ms;
+    --duration-ambient: 1ms;
+    --stagger-step: 0ms;
   }
 }

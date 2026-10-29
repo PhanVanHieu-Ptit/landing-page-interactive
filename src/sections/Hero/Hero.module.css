@@ -6,12 +6,26 @@
  * (0 to 1, written by Hero.tsx while scrolling) lets the section ease away:
  * the lens drifts down and the copy fades up. Unset (reduced motion, or before
  * the first scroll), every calc() below falls back to the resting pose.
+ *
+ * Three compositions (see src/animation/story-layout.ts; the queries below
+ * repeat its literals):
+ *
+ *   stacked  the base rules: the lens in its own zone, the copy under it.
+ *            Every portrait viewport, and landscape ones with the height.
+ *   split    landscape and under 40rem tall (a phone on its side): copy in the
+ *            left column, lens in the right.
+ *   overlay  64rem wide, 40rem tall, landscape: the lens fills the section and
+ *            the headline is set over it, under a scrim.
+ *
+ * Only the overlay lets text and lens share pixels.
  */
 .hero {
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-rows: 1fr;
+  /* The lens zone takes what the copy leaves, but never less than a lens worth looking at; the section grows instead. */
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(calc(var(--header-h) + 10rem), 1fr) auto;
   min-block-size: 100vh;
   min-block-size: 100svh;
   overflow: clip;
@@ -29,15 +43,23 @@
   pointer-events: none;
 }
 
-/* The lens is square and centered; its size is limited by the viewport's height as much as its width. */
+/*
+ * The lens's own box. It sits below the transparent header (the padding), and
+ * as a size container it lets the lens measure itself against the room it was
+ * actually given: the largest square that fits, whatever the copy took.
+ */
+.stageZone {
+  grid-row: 1;
+  container-type: size;
+  display: grid;
+  place-items: center;
+  padding-block-start: var(--header-h);
+}
+
+/* The lens is square and centered in its zone. */
 .stageFrame {
-  position: absolute;
-  inset-block-start: 31svh;
-  inset-inline: 0;
-  z-index: -2;
-  inline-size: min(92vw, 52svh);
-  margin-inline: auto;
-  translate: 0 calc(-50% + var(--hero-progress, 0) * 8svh);
+  inline-size: min(100cqw, 100cqh);
+  translate: 0 calc(var(--hero-progress, 0) * 4svh);
   scale: calc(1 - var(--hero-progress, 0) * 0.06);
 }
 
@@ -47,9 +69,11 @@
  * exactly `--color-bg`, which is what the next section starts with: no seam.
  * Its stops approximate an ease, so the fade has no visible edge, and its
  * reach is a size so it can grow where the copy takes more of the screen.
+ * Only the overlay layout needs it: elsewhere no text sits on the lens.
  */
 .scrim {
-  --scrim-reach: 88%;
+  --scrim-reach: 78%;
+  display: none;
   position: absolute;
   inset: 0;
   z-index: -1;
@@ -76,10 +100,11 @@
 }
 
 .inner {
+  grid-row: 2;
   display: grid;
-  grid-template-rows: 1fr auto;
+  grid-template-rows: auto auto;
   row-gap: var(--space-5);
-  padding-block: calc(var(--header-h) + var(--space-5)) var(--space-6);
+  padding-block: var(--space-4) max(var(--space-6), var(--safe-bottom));
   opacity: calc(1 - var(--hero-progress, 0) * 1.6);
   translate: 0 calc(var(--hero-progress, 0) * -3rem);
 }
@@ -95,10 +120,15 @@
   margin: 0;
 }
 
+/*
+ * Width sets the size and height caps it: the same statement has to fit a
+ * 320px phone, a 1024px tablet and a laptop only 650px tall, and a size that
+ * follows width alone is too big wherever the screen is short.
+ */
 .title {
   margin: 0;
   max-inline-size: 6.4em;
-  font-size: var(--text-hero);
+  font-size: clamp(2.5rem, min(13vw, 8svh), var(--text-hero));
 }
 
 /*
@@ -136,17 +166,8 @@
   gap: var(--space-5);
 }
 
-/* Tablet: the lede and the call to action share a row. */
+/* Tablet width: the lede and the call to action share a row under the lens. */
 @media (min-width: 48rem) {
-  .scrim {
-    --scrim-reach: 78%;
-  }
-
-  .stageFrame {
-    inset-block-start: 34svh;
-    inline-size: min(80vw, 58svh);
-  }
-
   .foot {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: end;
@@ -159,11 +180,104 @@
   }
 }
 
-/* Desktop: a larger, higher lens, with the scroll cue in the middle of the rail, clear of the copy. */
-@media (min-width: 64rem) {
+/*
+ * A short portrait phone (an SE, a small Android) has no height to spare: the
+ * scroll cue goes, and the lens gets the room instead. The copy running past
+ * the fold already says there is more.
+ */
+@media (max-height: 43.75rem) {
+  .rail {
+    display: none;
+  }
+}
+
+/*
+ * Split: a phone on its side, or any landscape window under 40rem tall. The
+ * copy takes the left column, bottom-aligned, and the lens the right, so
+ * neither is squeezed by the missing height. The scroll cue goes: the page
+ * itself is the cue when a screen is this short. (39.99rem, not 40rem, so this
+ * and the overlay's `min-height: 40rem` never both match.)
+ */
+@media (orientation: landscape) and (max-height: 39.99rem) {
+  .hero {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .inner {
+    grid-column: 1;
+    grid-row: 1;
+    padding-block-start: calc(var(--header-h) + var(--space-2));
+    padding-block-end: max(var(--space-4), var(--safe-bottom));
+  }
+
+  .stageZone {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .copy {
+    gap: var(--space-3);
+  }
+
+  .title {
+    font-size: clamp(2rem, min(5vw, 11svh), 4rem);
+  }
+
+  /* One step down, so the copy fits the height it has instead of pushing the section past the screen. */
+  .lede {
+    font-size: var(--text-base);
+    max-inline-size: 44ch;
+  }
+
+  .foot {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+
+  .cta {
+    justify-self: start;
+  }
+}
+
+/*
+ * Overlay: desktop and laptop. The lens leaves its zone and fills the section,
+ * larger and higher; the headline is set over it, which is why this layout
+ * (and no other) has a scrim. The scroll cue sits in the middle of the rail,
+ * clear of the copy.
+ */
+@media (min-width: 64rem) and (min-height: 40rem) and (orientation: landscape) {
+  .hero {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .scrim {
+    display: block;
+  }
+
+  /* No box of its own: the lens positions itself against the section, as the zone is not there. */
+  .stageZone {
+    display: contents;
+  }
+
   .stageFrame {
+    position: absolute;
     inset-block-start: 40svh;
+    inset-inline: 0;
+    z-index: -2;
     inline-size: min(62vw, 74svh);
+    margin-inline: auto;
+    translate: 0 calc(-50% + var(--hero-progress, 0) * 8svh);
+  }
+
+  .inner {
+    grid-row: 1;
+    grid-template-rows: 1fr auto;
+    padding-block-start: calc(var(--header-h) + var(--space-5));
+  }
+
+  .title {
+    font-size: clamp(3.5rem, min(var(--text-hero), 17svh), var(--text-hero));
   }
 
   .rail {

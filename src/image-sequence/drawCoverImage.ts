@@ -76,9 +76,12 @@ export function fitRect(
   }
 }
 
-/** Natural pixel size. An `<img>`'s `width` is its rendered size, which is 0 until it is laid out. */
+/**
+ * Natural pixel size. An `<img>`'s `width` is its rendered size, which is 0 until it is laid out. The
+ * `typeof` guard keeps this callable where the class does not exist (workers, tests).
+ */
 function naturalSize(image: ImageBitmap | HTMLImageElement) {
-  return image instanceof HTMLImageElement
+  return typeof HTMLImageElement !== 'undefined' && image instanceof HTMLImageElement
     ? { width: image.naturalWidth, height: image.naturalHeight }
     : { width: image.width, height: image.height }
 }

@@ -30,6 +30,22 @@
           }
         ]
       }
+    },
+    {
+      "files": ["src/image-sequence/core/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["react", "react/*", "react-dom", "react-dom/*", "@/**"],
+                "message": "src/image-sequence/core is the engine's framework-free layer: no React and nothing from the app."
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }

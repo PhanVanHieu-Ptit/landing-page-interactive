@@ -16,7 +16,11 @@
   transition: color var(--duration-fast) var(--ease-standard);
 }
 
-/* Underline reveal: grows from the left. */
+/*
+ * The underline sweeps through: it grows from the left on hover and leaves
+ * toward the right. Only the scale is transitioned; the origin flips at the
+ * moment of hover, when the line is at rest at one end or the other.
+ */
 .link::after {
   content: '';
   position: absolute;
@@ -25,7 +29,7 @@
   block-size: var(--border-hairline);
   background-color: currentColor;
   transform: scaleX(0);
-  transform-origin: left center;
+  transform-origin: right center;
   transition: transform var(--duration-base) var(--ease-out-quint);
 }
 
@@ -74,7 +78,18 @@
   font-size: var(--text-sm);
 }
 
-/* Interaction states come last, with `.nav` in the selector so they outrank the variant rules above. */
+/* Fingers need 44px; a pointer does not, and the footer is dense enough to want the 36. */
+@media (pointer: coarse) {
+  .footer .link {
+    min-block-size: 2.75rem;
+  }
+}
+
+/*
+ * Interaction states come last, with `.nav` in the selector so they outrank the
+ * variant rules above. Keyboard focus mirrors hover, and while one link is
+ * engaged its siblings step back to the tertiary tone.
+ */
 @media (hover: hover) {
   .nav .link:hover {
     color: var(--color-text-primary);
@@ -82,6 +97,11 @@
 
   .nav .link:hover::after {
     transform: scaleX(1);
+    transform-origin: left center;
+  }
+
+  .nav .list:has(.link:hover) .link:not(:hover) {
+    color: var(--color-text-tertiary);
   }
 }
 
@@ -91,4 +111,9 @@
 
 .nav .link:focus-visible::after {
   transform: scaleX(1);
+  transform-origin: left center;
+}
+
+.nav .list:has(.link:focus-visible) .link:not(:focus-visible) {
+  color: var(--color-text-tertiary);
 }

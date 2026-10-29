@@ -64,6 +64,7 @@
 }
 
 .link {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
@@ -71,6 +72,26 @@
   color: var(--color-text-secondary);
   font-size: var(--text-sm);
   transition: color var(--duration-fast) var(--ease-standard);
+}
+
+/* Fingers need 44px; a pointer does not. */
+@media (pointer: coarse) {
+  .link {
+    min-block-size: 2.75rem;
+  }
+}
+
+/* The same sweep-through underline as the navigation links (see Navigation.module.css). */
+.link::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0.5rem;
+  block-size: var(--border-hairline);
+  background-color: currentColor;
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform var(--duration-base) var(--ease-out-quint);
 }
 
 .toTop {
@@ -88,6 +109,11 @@
     color: var(--color-text-primary);
   }
 
+  .link:hover::after {
+    transform: scaleX(1);
+    transform-origin: left center;
+  }
+
   .toTop:hover .arrow {
     transform: translateY(-3px);
   }
@@ -95,6 +121,15 @@
 
 .link:focus-visible {
   color: var(--color-text-primary);
+}
+
+.link:focus-visible::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+.toTop:focus-visible .arrow {
+  transform: translateY(-3px);
 }
 
 .legal {
@@ -106,8 +141,13 @@
   border-block-start: var(--border-hairline) solid var(--color-line);
 }
 
-/* Decorative: the brand name, huge and fading out, cropped by the footer's bottom edge. */
+/*
+ * Decorative: the brand name, huge and fading out, cropped by the footer's
+ * bottom edge. It rises into place as a scene-level move, the page's last.
+ */
 .ghost {
+  --reveal-duration: var(--duration-cinematic);
+  --reveal-rise: 3rem;
   margin-block: var(--space-4) -0.16em;
   background-image: linear-gradient(
     180deg,

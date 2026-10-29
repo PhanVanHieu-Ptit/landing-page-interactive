@@ -1,0 +1,8 @@
+/*
+ * Wraps the page so it can be made `inert` as one unit while the preloader is
+ * up. It generates no box, so sticky and fixed positioning, and the order of the
+ * page's children, are exactly what they were without it.
+ */
+.shell {
+  display: contents;
+}

@@ -1,0 +1,35 @@
+/*
+ * Every item shares one grid cell. The clip hides the part of an item that has
+ * rolled out of the line box; the offsets are a fraction of the line, so the
+ * roll is a short, quiet move rather than a full slide.
+ */
+.swap {
+  display: inline-grid;
+  overflow: clip;
+}
+
+.end {
+  justify-items: end;
+}
+
+.item {
+  grid-area: 1 / 1;
+  white-space: nowrap;
+  opacity: 0;
+  transition:
+    opacity var(--duration-slow) var(--ease-out-quint),
+    translate var(--duration-slow) var(--ease-out-quint);
+}
+
+.item[data-state='past'] {
+  translate: 0 -0.6em;
+}
+
+.item[data-state='future'] {
+  translate: 0 0.6em;
+}
+
+.item[data-state='current'] {
+  opacity: 1;
+  translate: 0 0;
+}

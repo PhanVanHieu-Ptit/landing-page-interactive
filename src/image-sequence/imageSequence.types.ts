@@ -19,14 +19,15 @@ export interface FocalPoint {
 /**
  * Where the frames live and how they are named. Frame `i` (zero-based) is
  * `{baseUrl}/{prefix}{number}.{extension}`, where `number` is
- * `firstFrameNumber + i` zero-padded to `digits`. With the defaults, a
+ * `firstFrameNumber + i * step` zero-padded to `digits`. With the defaults, a
  * 240-frame sequence is `frame-0001.webp` through `frame-0240.webp`.
  *
- * Numbering must be contiguous, and every frame must share one pixel size and
- * be opaque: the renderer only clears the canvas when a frame leaves bars.
+ * Numbering must be regular (every `step`th number), and every frame must share
+ * one pixel size and be opaque: the renderer only clears the canvas when a
+ * frame leaves bars.
  */
 export interface ImageSequenceSource {
-  /** Number of frames in the sequence. */
+  /** Number of frames the sequence plays: with a `step` above 1, the files used, not the files present. */
   frameCount: number
   /** Directory URL holding the frames, with or without a trailing slash. */
   baseUrl: string
@@ -36,6 +37,13 @@ export interface ImageSequenceSource {
   digits?: number | undefined
   /** Number in the first frame's filename. Defaults to 1, which is where ffmpeg starts counting. */
   firstFrameNumber?: number | undefined
+  /**
+   * Distance between the numbers of consecutive frames. Defaults to 1 (every file). A step of 2 plays every
+   * other file of a set, so a phone can use half the frames of the full-size set from the same directory:
+   * half the downloads and half the encoded bytes, with `frameCount` halved to match. It does not shrink the
+   * decoded size of a frame, which is the resolution's doing (see `core/tiers.ts`).
+   */
+  step?: number | undefined
   /** File extension without the dot. Defaults to `webp`. */
   extension?: string | undefined
 }
@@ -52,6 +60,7 @@ export interface ResolvedImageSequenceSource {
   prefix: string
   digits: number
   firstFrameNumber: number
+  step: number
   extension: string
 }
 
@@ -79,6 +88,18 @@ export interface FrameLoaderOptions {
   retryDelayMs?: number | undefined
   /** Frame requested first, until the renderer reports the real playhead. Defaults to 0. */
   initialFrame?: number | undefined
+  /**
+   * How many frames the opening scene needs: the ones nearest `initialFrame`, counted by `criticalTotal` and
+   * `criticalSettled` in the state so a preloader can wait for them alone. Capped at `maxDecodedFrames`, which keeps
+   * the set inside what every preload mode downloads. Defaults to 0 (no critical set).
+   */
+  criticalFrames?: number | undefined
+  /**
+   * A request still unfinished after this many milliseconds is aborted and handled like any transient failure
+   * (retried, then given up on). Without it, a request that never answers holds a download slot forever.
+   * Defaults to 15000; 0 disables it.
+   */
+  requestTimeoutMs?: number | undefined
   /** Defaults to `'all'`. */
   preload?: PreloadMode | undefined
 }
@@ -110,6 +131,12 @@ export interface SequenceState {
   readonly decoded: number
   /** `(loaded + failed) / total`: real progress, 1 once every frame has settled. */
   readonly progress: number
+  /** Size of the critical set (see `FrameLoaderOptions.criticalFrames`). 0 when none was asked for. */
+  readonly criticalTotal: number
+  /** Critical frames that have been downloaded or failed for good. Failed ones count: nothing more will arrive for them. */
+  readonly criticalSettled: number
+  /** Critical frames that have been downloaded: what a progress readout should count, since a failed frame shows nothing. */
+  readonly criticalLoaded: number
   /** Natural size of the frames, known once the first one is decoded. */
   readonly frameSize: FrameSize | null
   /** Human-readable reason, set only when `status` is `error`. */
@@ -178,6 +205,11 @@ export interface ProgressSource {
  */
 export type ProgressRange = 'pinned' | 'pass'
 
+/** Where to find an element that may not exist yet. A React ref fits, and so does `{ current: element }`. */
+export interface ElementTarget {
+  readonly current: Element | null
+}
+
 export interface ScrollProgressOptions {
   /** Defaults to `'pinned'`. */
   range?: ProgressRange | undefined
@@ -193,6 +225,8 @@ export interface SequenceFallbackInfo {
   frameIndex: number
   frameCount: number
   progress: number
+  /** Why no frame could be loaded; it names the first URL that failed. Null when the fallback is drawn for another reason. */
+  error: string | null
 }
 
 /**
@@ -201,3 +235,28 @@ export interface SequenceFallbackInfo {
  * labels the canvas as a fallback whenever one is drawn.
  */
 export type SequenceFallback = (ctx: CanvasRenderingContext2D, info: SequenceFallbackInfo) => void
+
+export interface SequenceRendererOptions {
+  canvas: HTMLCanvasElement
+  sequence: ImageSequence
+  progress: ProgressSource
+  /** Defaults to `'cover'`. */
+  fit?: FitMode | undefined
+  /** Defaults to the center. */
+  focal?: FocalPoint | undefined
+  /** Drawn in place of a frame once the sequence has failed to load. Without one, the canvas is left as it is. */
+  fallback?: SequenceFallback | undefined
+  /** Stamps a "dev fallback" badge over whatever `fallback` draws, so a stand-in is never mistaken for the real sequence. */
+  labelFallback?: boolean | undefined
+}
+
+/** Paints a sequence onto one canvas. It owns the canvas size and the animation frame, and nothing else. */
+export interface SequenceRenderer {
+  /**
+   * Sizes the backing store to `cssWidth × cssHeight × dpr` device pixels and
+   * repaints on the next animation frame. Does nothing visible for an empty box.
+   */
+  resize: (cssWidth: number, cssHeight: number, dpr: number) => void
+  /** Cancels the pending frame and every subscription. Does not stop the loader, which belongs to whoever created it. */
+  dispose: () => void
+}

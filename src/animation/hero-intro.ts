@@ -9,6 +9,8 @@ export interface HeroIntroTargets {
   lede: HTMLElement
   cta: HTMLElement
   rail: HTMLElement
+  /** Holds the entrance until it resolves (the preloader's handover). Immediate by default. */
+  start?: Promise<void>
 }
 
 /** How long the text waits for webfonts, so the headline never reflows mid-reveal. */
@@ -35,7 +37,15 @@ const AT = {
  * visible. They are created paused, which holds the start pose through the
  * first paint, and released once webfonts are ready. Returns a cancel function.
  */
-export function playHeroIntro({ root, eyebrow, words, lede, cta, rail }: HeroIntroTargets): () => void {
+export function playHeroIntro({
+  root,
+  eyebrow,
+  words,
+  lede,
+  cta,
+  rail,
+  start = Promise.resolve(),
+}: HeroIntroTargets): () => void {
   const easing = readToken(root, '--ease-out-expo')
   const slow = readDurationMs(root, '--duration-slow')
   const slower = readDurationMs(root, '--duration-slower')
@@ -75,7 +85,7 @@ export function playHeroIntro({ root, eyebrow, words, lede, cta, rail }: HeroInt
     document.fonts.ready,
     new Promise<void>((resolve) => window.setTimeout(resolve, FONT_WAIT_MS)),
   ])
-  fontsReady.then(
+  Promise.all([fontsReady, start]).then(
     () => {
       if (cancelled) return
       for (const animation of animations) animation.play()

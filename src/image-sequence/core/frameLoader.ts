@@ -62,6 +62,8 @@ interface Slot {
   fetchTicket: number
   decodeTicket: number
   retryTimer: ReturnType<typeof setTimeout> | undefined
+  /** Aborts a request that takes too long; armed with each download and cleared when it settles. */
+  timeoutTimer: ReturnType<typeof setTimeout> | undefined
 }
 
 function intOption(value: number | undefined, fallback: number, min: number): number {
@@ -124,6 +126,7 @@ export function createFrameLoader(
   const maxDecoded = intOption(options.maxDecodedFrames, 16, 3)
   const retries = intOption(options.retries, 2, 0)
   const retryDelayMs = options.retryDelayMs !== undefined && options.retryDelayMs >= 0 ? options.retryDelayMs : 250
+  const requestTimeoutMs = intOption(options.requestTimeoutMs, 15_000, 0)
 
   const slots = Array.from(
     { length: total },
@@ -139,12 +142,17 @@ export function createFrameLoader(
       fetchTicket: 0,
       decodeTicket: 0,
       retryTimer: undefined,
+      timeoutTimer: undefined,
     }),
   )
 
   let running = false
   let preload: PreloadMode = options.preload ?? 'all'
   let playhead = clampFrameIndex(options.initialFrame ?? 0, total)
+  // The opening scene: the frames the loader would fetch first. Fixed at creation, so it keeps meaning "the opening"
+  // after the playhead moves. The cap keeps it inside what `focus` mode downloads, so it can always be settled.
+  const criticalCount = Math.min(intOption(options.criticalFrames, 0, 0), maxDecoded)
+  const criticalSlots = slots.filter((slot) => frameCost(slot.index, playhead, 1) < criticalCount)
   let direction: 1 | -1 = 1
   // The frame most recently handed out. Eviction never touches it, so the picture on screen stays reproducible.
   let lastServed = -1
@@ -177,7 +185,25 @@ export function createFrameLoader(
     else if (preload === 'all' && settled === total) status = 'complete'
     else if (live > 0) status = 'ready'
     else status = 'loading'
-    return { status, total, loaded, failed, decoded: live, progress: settled / total, frameSize, error: giveUpReason }
+    let criticalSettled = 0
+    let criticalLoaded = 0
+    for (const slot of criticalSlots) {
+      if (slot.fetchState === 'done') criticalLoaded++
+      if (slot.fetchState === 'done' || slot.fetchState === 'failed') criticalSettled++
+    }
+    return {
+      status,
+      total,
+      loaded,
+      failed,
+      decoded: live,
+      progress: settled / total,
+      criticalTotal: criticalSlots.length,
+      criticalSettled,
+      criticalLoaded,
+      frameSize,
+      error: giveUpReason,
+    }
   }
 
   function getState(): SequenceState {
@@ -270,9 +296,19 @@ export function createFrameLoader(
     slot.fetchState = 'inflight'
     fetching++
     const priority = cost(slot.index) < windowSize ? 'high' : 'low'
+    // The timer aborts the request itself, so a timeout reaches the handler below as a failure of this attempt.
+    let timedOut = false
+    if (requestTimeoutMs > 0) {
+      slot.timeoutTimer = setTimeout(() => {
+        timedOut = true
+        controller.abort()
+      }, requestTimeoutMs)
+    }
+    const timer = slot.timeoutTimer
 
     download(env, slot.url, controller.signal, priority).then(
       (blob) => {
+        clearTimeout(timer)
         if (ticket !== slot.fetchTicket) return
         fetching--
         slot.controller = null
@@ -283,10 +319,11 @@ export function createFrameLoader(
         pump()
       },
       (error: unknown) => {
+        clearTimeout(timer)
         if (ticket !== slot.fetchTicket) return
         fetching--
         slot.controller = null
-        fetchFailed(slot, error)
+        fetchFailed(slot, timedOut ? new FrameError(`timed out after ${requestTimeoutMs} ms`, false) : error)
       },
     )
   }
@@ -339,6 +376,8 @@ export function createFrameLoader(
   /** Cancels a download or a pending retry and puts the frame back in the queue. */
   function abortFetch(slot: Slot): void {
     if (slot.fetchState === 'inflight') {
+      clearTimeout(slot.timeoutTimer)
+      slot.timeoutTimer = undefined
       slot.controller?.abort()
       slot.controller = null
       slot.fetchTicket++

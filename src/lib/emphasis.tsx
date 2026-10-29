@@ -1,4 +1,5 @@
 import { Fragment, type ReactNode } from 'react'
+import { cssVars } from './css-vars'
 
 /**
  * Turns copy such as "Every frame begins in *glass.*" into text with an <em>
@@ -35,6 +36,35 @@ export function renderRevealWords(text: string, classes: RevealWordClasses): Rea
       return (
         <span key={key} className={classes.word}>
           <span className={classes.inner} data-reveal-word="">
+            {content}
+          </span>
+        </span>
+      )
+    }),
+  )
+}
+
+/**
+ * The same word-by-word mask as `renderRevealWords`, for headings that enter
+ * through the scroll reveal system (src/styles/reveal.css) instead of a script:
+ * each word is an item of the nearest `data-reveal` host, and gets its place in
+ * that host's sequence as `--i`, starting at `firstIndex`, so a heading's other
+ * parts can be slotted before or after its words.
+ */
+export function renderStaggeredWords(text: string, firstIndex = 0): ReactNode {
+  let key = 0
+  let word = firstIndex
+  return text.split(/\*([^*]+)\*/).flatMap((part, index) =>
+    part.split(/(\s+)/).map((piece) => {
+      if (piece === '') return null
+      key += 1
+      if (/^\s+$/.test(piece)) return <Fragment key={key}>{piece}</Fragment>
+      const content = index % 2 === 1 ? <em>{piece}</em> : piece
+      const position = word
+      word += 1
+      return (
+        <span key={key} className="reveal-mask">
+          <span className="reveal-mask-inner" data-reveal-item="mask" style={cssVars({ '--i': position })}>
             {content}
           </span>
         </span>
