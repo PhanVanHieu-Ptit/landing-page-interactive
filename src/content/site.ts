@@ -26,13 +26,13 @@ export const hero = {
   title: 'Every frame begins in *glass.*',
   lede: 'Eleven elements, fifteen iris blades and a barrel machined from a single billet. Assembled by hand, one lens at a time.',
   cta: { label: 'Reserve a lens', href: '#reserve' },
-  scrollTo: { href: '#anatomy', destination: 'anatomy' },
-  /** Hero, Anatomy, Specifications, Reserve: what the section indicator counts. */
-  sectionCount: 4,
+  scrollTo: { href: '#story', destination: 'the story' },
+  /** Hero, Story, Anatomy, Specifications, Reserve: what the section indicator counts. */
+  sectionCount: 5,
 } as const
 
 export const reserve = {
-  index: '04',
+  index: '05',
   eyebrow: 'First run',
   title: 'First run of *250.*',
   body: 'Reservations are open for the first numbered run. No deposit is taken until your serial number is confirmed.',

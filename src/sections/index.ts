@@ -1,4 +1,5 @@
 export { Anatomy } from './Anatomy/Anatomy'
 export { Hero } from './Hero/Hero'
 export { Reserve } from './Reserve/Reserve'
+export { ScrollStory } from './ScrollStory/ScrollStory'
 export { Specifications } from './Specifications/Specifications'

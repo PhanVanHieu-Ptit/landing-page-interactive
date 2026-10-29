@@ -1,5 +1,5 @@
 import { SiteFooter, SiteHeader, SkipLink } from '@/components/layout'
-import { Anatomy, Hero, Reserve, Specifications } from '@/sections'
+import { Anatomy, Hero, Reserve, ScrollStory, Specifications } from '@/sections'
 
 export function App() {
   return (
@@ -8,6 +8,7 @@ export function App() {
       <SiteHeader />
       <main id="main" tabIndex={-1}>
         <Hero />
+        <ScrollStory />
         <Anatomy />
         <Specifications />
         <Reserve />

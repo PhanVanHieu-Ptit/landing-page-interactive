@@ -1,7 +1,7 @@
 import type { Chapter, SectionCopy } from './types'
 
 export const anatomyCopy: SectionCopy = {
-  index: '02',
+  index: '03',
   eyebrow: 'Anatomy',
   title: 'Taken apart, *one chapter* at a time.',
   lede: 'Four chapters, front to back: what the light meets first, and what each part does with it.',

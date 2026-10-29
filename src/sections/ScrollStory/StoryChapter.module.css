@@ -1,0 +1,24 @@
+/*
+ * `--chapter-presence` (0 to 1) and `--chapter-shift` (+1 entering from below,
+ * 0 at rest, -1 leaving upward) are written by the story's frame loop. Until
+ * it attaches they are unset, and the fallbacks keep every chapter hidden, so
+ * five blocks of copy never flash on top of each other.
+ */
+.chapter {
+  grid-area: 1 / 1;
+  align-self: end;
+  opacity: var(--chapter-presence, 0);
+  translate: 0 calc(var(--chapter-shift, 1) * var(--space-6));
+  will-change: opacity, translate;
+  /* Invisible chapters must not catch clicks meant for the one in front; interactive children opt back in. */
+  pointer-events: none;
+}
+
+/* Reduced motion: no stage, no scrubbing. The chapters simply read in order. */
+[data-mode='static'] .chapter {
+  grid-area: auto;
+  opacity: 1;
+  translate: none;
+  will-change: auto;
+  pointer-events: auto;
+}

@@ -35,12 +35,26 @@ export interface LensParams {
   ringRotation: number
   /** Direction the key light comes from, in radians clockwise from +x. Default: upper left. */
   lightAngle: number
+  /** Camera distance: 1 fits the lens to the canvas, 2 shows half of it at twice the size. */
+  zoom: number
+  /** Which point of the lens sits at the center of the canvas, in lens radii from its center. (0, -1) centers its top edge. */
+  panX: number
+  panY: number
+  /** 0 = body in shadow with only the rim light left (a silhouette), 1 = fully lit. */
+  exposure: number
+  /** Multiplier on the rim light's strength; above 1 it reads as a strong edge light. */
+  rimStrength: number
 }
 
 export const DEFAULT_LENS_PARAMS: LensParams = {
   irisOpen: 0.62,
   ringRotation: 0,
   lightAngle: (-3 * Math.PI) / 4,
+  zoom: 1,
+  panX: 0,
+  panY: 0,
+  exposure: 1,
+  rimStrength: 1,
 }
 
 /** Reads the palette from the design tokens on `element`, so the artwork never drifts from the stylesheet. */
@@ -76,14 +90,18 @@ export function drawLens(
   const dpr = ctx.getTransform().a
   ctx.clearRect(0, 0, width, height)
   ctx.save()
-  ctx.translate(width / 2, height / 2)
 
-  const scene: Scene = { ctx, radius: Math.min(width, height) * 0.46, palette, params, dpr }
+  // Zoom scales the radius, not the context: every size below is a fraction of it, while `shadowBlur` ignores the transform.
+  const radius = Math.min(width, height) * 0.46 * params.zoom
+  ctx.translate(width / 2 - params.panX * radius, height / 2 - params.panY * radius)
+
+  const scene: Scene = { ctx, radius, palette, params, dpr }
   drawBarrel(scene)
   drawGripRing(scene)
   drawScaleRing(scene)
   drawBezel(scene)
   drawGlass(scene)
+  drawShadow(scene)
   drawRimLight(scene)
 
   ctx.restore()
@@ -487,9 +505,20 @@ function drawIris({ ctx, palette: p, params }: Scene, glass: number) {
   ctx.stroke()
 }
 
+/** Lowers the exposure: a black veil over the whole body, so only the rim light drawn after it survives. */
+function drawShadow({ ctx, radius: R, params }: Scene) {
+  const veil = 1 - clamp01(params.exposure)
+  if (veil <= 0) return
+  circlePath(ctx, R)
+  ctx.fillStyle = withAlpha(BLACK, veil)
+  ctx.fill()
+}
+
 /** Cinematic edge lighting: a warm highlight on the key side, a cool one opposite. */
 function drawRimLight({ ctx, radius: R, palette: p, params, dpr }: Scene) {
   const radius = R - 0.5
-  strokeFadingArc(ctx, radius, params.lightAngle, 0.6, p.ivory100, 0.9, Math.max(1.2, R * 0.005), 4 * dpr)
-  strokeFadingArc(ctx, radius, params.lightAngle + Math.PI, 0.45, p.steel300, 0.5, Math.max(1, R * 0.004), 3 * dpr)
+  const strength = Math.max(0, params.rimStrength)
+  const alpha = (base: number) => clamp01(base * strength)
+  strokeFadingArc(ctx, radius, params.lightAngle, 0.6, p.ivory100, alpha(0.9), Math.max(1.2, R * 0.005) * strength, 4 * dpr * strength)
+  strokeFadingArc(ctx, radius, params.lightAngle + Math.PI, 0.45, p.steel300, alpha(0.5), Math.max(1, R * 0.004) * strength, 3 * dpr * strength)
 }
