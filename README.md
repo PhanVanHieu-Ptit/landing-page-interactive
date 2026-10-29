@@ -6,7 +6,7 @@ Built with React 19, TypeScript 7 (strict), Vite 8, vanilla CSS with custom prop
 
 > Aurelle is a fictional brand created for this demonstration. Check trademarks before using the name for anything real.
 
-**Status:** foundation, visual design system, and the cinematic Hero (entrance choreography and a scroll-linked exit). A preloader and a scroll-driven lens scene are deliberately not built yet. See the [roadmap](#roadmap).
+**Status:** foundation, visual design system, the cinematic Hero (entrance choreography and a scroll-linked exit), and a pinned, five-chapter scroll story that scrubs the lens. A preloader is deliberately not built yet. See the [roadmap](#roadmap).
 
 ## Quick start
 
@@ -37,9 +37,9 @@ src/
     ui/          PrimaryButton, SectionHeading, SectionIndicator, ScrollHint
     icons/       Inline SVG icons and the logo mark (currentColor)
     stage/       ProductStage: the canvas that hosts the hero product
-  sections/      Hero, Anatomy, Specifications, Reserve
-  hooks/         useDisclosure, useElementSize, usePrefersReducedMotion, useScrolled
-  animation/     Canvas helpers, the lens renderer, tween, Hero intro, scroll progress: no React, no UI
+  sections/      Hero, ScrollStory, Anatomy, Specifications, Reserve
+  hooks/         useActiveChapter, useDisclosure, useElementSize, useMediaQuery, usePrefersReducedMotion, useScrolled
+  animation/     Canvas helpers, the lens renderer, tween, Hero intro, scroll progress, the story's timeline and frame loop: no React, no UI
   lib/           cx, cssVars, renderEmphasis, renderRevealWords
 docs/            Reference analysis
 ```
@@ -86,6 +86,27 @@ Everything animates through `--duration-*` and `--ease-*` (default: `--ease-out-
 
 The lens leads and the copy follows, about 2 seconds in total. Entrance animations use the Web Animations API with `fill: 'backwards'`: the resting look lives in the stylesheet, the start pose is held until the animation plays, and webfonts are awaited (up to 600 ms) so the headline never reflows mid-reveal. The iris opens through a one-shot `requestAnimationFrame` tween of `LensParams`. Scrolling away writes `--hero-progress` (0 to 1) on the section, which the stylesheet turns into a drifting lens and fading copy; the bottom of the Hero ends on exactly `--color-bg`, so the next section continues the same black. The header floats over the Hero and takes its scrim and hairline once the page scrolls.
 
+### Scroll story
+
+Section 02 pins the lens and tells the product in five chapters (Introduction, Design, Craftsmanship, Innovation, The reveal) while the page scrolls natively. There is no image sequence: the "frames" are keyframed poses of the procedural lens, so it stays sharp at any zoom and costs no download.
+
+**How it is built.** A tall `.track` holds a `position: sticky` 100svh `.stage`; how far the page has scrolled through the track is the story's progress (0 to 1). Everything that depends on it lives outside React:
+
+| File | Job |
+| --- | --- |
+| `animation/story-config.ts` | **The tuning knobs.** Each chapter's range of progress, copy fade lengths and lens poses; per-layout scroll length, zoom gain, smoothing and DPR cap |
+| `animation/story-timeline.ts` | Pure functions of progress: which chapter is active, each chapter's `presence` and `shift`, the lens pose. Validates the config and throws on overlapping ranges |
+| `animation/story-controller.ts` | The one `requestAnimationFrame` loop: reads the scroll position, eases toward it, writes CSS variables, paints the canvas |
+| `animation/lens-renderer.ts` | A long-lived painter that owns the context and palette |
+| `sections/ScrollStory/` | `ScrollStory` (shell and modes), `StoryChapter` (the animated slot), `ChapterContent` (the words), `StoryCanvas` |
+| `hooks/useActiveChapter.ts` | The active chapter index: the only story state React ever sees |
+
+**Changing it.** Edit ranges and poses in `story-config.ts` and the words in `content/story.ts`, matched by chapter `id` and order. Ranges are fractions of the scroll distance and may not overlap. A chapter's copy fades in over `enter` and out over `exit` (default `DEFAULT_FADE`); the lens holds the `in` pose while the copy is readable and travels to the next chapter's pose while it swaps. One chapter's exit and the next one's enter are back to back, so two blocks of copy are never on screen together. `ScrollStory` also takes `timing` and `scrollLength` props.
+
+**Performance rules.** The scroll listener is passive and only schedules a frame; each frame re-reads `scrollY`, so a flick or a jump collapses into the newest target and nothing queues. The shown progress eases toward it (a short exponential, frame-rate independent) and drives the canvas and the copy together. The loop stops itself once settled and sleeps while the story is more than a screen away. Layout is measured on attach and when the track or document resizes, never per frame, and everything written per frame is a custom property (read by `opacity` and `translate`) or canvas pixels. The canvas repaints only when progress moved enough to see.
+
+**Layouts.** `full` (48rem and up); `compact` below that: a shorter story, gentler close-ups, the lens lifted above the copy, a lower DPR cap and no figures line; `static` under `prefers-reduced-motion`: no pinning and no scrubbing, the finished lens followed by the chapters in order. The copy is always in the DOM and readable by assistive technology; only the call to action is `inert` while its chapter is out of turn.
+
 ### Breakpoints
 
 Mobile-first. `md` 48rem: inline navigation and two-column rows. `lg` 64rem: a larger Hero lens, a three-column Hero rail, and four-column grids. CSS cannot read custom properties inside `@media`, so the `--bp-*` tokens are the documented source of truth and every query repeats the same literal rem value.
@@ -120,10 +141,10 @@ Skip link; one banner, one main, one contentinfo, and two distinctly labelled na
 ## Roadmap
 
 1. A preloader with real progress. The Hero intro starts on mount today; it will need to wait for the preloader.
-2. A scroll-driven scene that scrubs `LensParams` and feeds `SectionIndicator`'s `progress`.
-3. Entrance choreography for the sections below the Hero.
-4. A `useMediaQuery` hook, when something needs one.
-5. Open Graph image, analytics, tests.
+2. Entrance choreography for the sections below the scroll story.
+3. Open Graph image, analytics, tests (the story's timeline is pure, so it is the easiest place to start).
+
+Done since the last revision: the scroll-driven scene (the story's own progress rail replaces feeding `SectionIndicator`, whose 520 ms transition would lag a per-frame value) and `useMediaQuery`.
 
 ## Credits
 

@@ -1,7 +1,7 @@
 import type { SectionCopy, Spec } from './types'
 
 export const specsCopy: SectionCopy = {
-  index: '03',
+  index: '04',
   eyebrow: 'Specifications',
   title: 'The *numbers,* plainly.',
   lede: 'Everything the Aurelle 50 promises, and nothing it does not.',

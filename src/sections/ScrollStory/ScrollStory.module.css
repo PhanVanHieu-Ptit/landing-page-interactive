@@ -1,0 +1,193 @@
+/*
+ * A tall track holding a sticky stage. The stage stays pinned while the track
+ * scrolls past it, so the scroll distance (the track's height minus one
+ * screen) becomes the story's timeline; scrolling stays the browser's own.
+ * `body` clips with `overflow-x: clip`, not `hidden`, precisely so it does not
+ * become a scroll container and break `position: sticky`.
+ *
+ * Layers on the stage, back to front: lighting, canvas, scrim, copy.
+ * `--story-progress` (0 to 1) is written by the story's frame loop and only
+ * drives the progress rail here; each chapter reads its own variables (see
+ * StoryChapter.module.css).
+ */
+.story {
+  position: relative;
+  background-color: var(--color-bg);
+  /* Links to #story should land with the stage already pinned, not a header's height short of it (the page-wide `scroll-padding-top` would leave a gap). */
+  scroll-margin-block-start: calc(-1 * (var(--header-h) + var(--space-5)));
+}
+
+/* `--story-length` is a number of viewport heights; `svh` keeps it stable while a phone's browser bars come and go. */
+.track {
+  position: relative;
+  block-size: calc(var(--story-length) * 100vh);
+  block-size: calc(var(--story-length) * 100svh);
+}
+
+.stage {
+  position: sticky;
+  inset-block-start: 0;
+  isolation: isolate;
+  block-size: 100vh;
+  block-size: 100svh;
+  /* Paint containment clips the zoomed lens at the stage edge and keeps this subtree's repaints from reaching the rest of the page. */
+  contain: layout paint;
+}
+
+/* The same key light and fill as the Hero, so the lens keeps its look as the story begins. */
+.lighting {
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  background-image:
+    radial-gradient(52% 44% at 50% 40%, var(--color-accent-soft), transparent 72%), var(--light-rim),
+    var(--light-vignette);
+  pointer-events: none;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+}
+
+/*
+ * Darkens the top (so the transparent header stays readable) and the bottom
+ * (so the copy stays readable over a close-up). Its stops approximate an ease,
+ * so the fade has no visible edge.
+ */
+.scrim {
+  --scrim-reach: 72%;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-bg) 72%, transparent), transparent),
+    linear-gradient(
+      to top,
+      var(--color-bg) 0%,
+      color-mix(in srgb, var(--color-bg) 94%, transparent) 15%,
+      color-mix(in srgb, var(--color-bg) 82%, transparent) 33%,
+      color-mix(in srgb, var(--color-bg) 58%, transparent) 51%,
+      color-mix(in srgb, var(--color-bg) 28%, transparent) 69%,
+      color-mix(in srgb, var(--color-bg) 8%, transparent) 87%,
+      transparent
+    );
+  background-position:
+    top,
+    bottom;
+  background-size:
+    100% calc(var(--header-h) + 3rem),
+    100% var(--scrim-reach);
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+.inner {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  row-gap: var(--space-5);
+  block-size: 100%;
+  padding-block: calc(var(--header-h) + var(--space-5)) var(--space-5);
+}
+
+/* Every chapter takes the same grid cell (see StoryChapter.module.css), so the list is as tall as its tallest chapter. */
+.chapters {
+  display: grid;
+  align-self: end;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* "01 / 05 ——|—— Introduction": decorative, and only the label and the fill change. */
+.rail {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: var(--space-4);
+}
+
+.railTrack {
+  position: relative;
+  block-size: var(--border-hairline);
+  background-color: var(--color-line-strong);
+}
+
+/* Scaled, not resized, so following the scroll is a compositor-only change. */
+.railFill {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-accent);
+  transform: scaleX(var(--story-progress, 0));
+  transform-origin: left center;
+  will-change: transform;
+}
+
+.railTick {
+  position: absolute;
+  inset-block: -3px;
+  inset-inline-start: calc(var(--at) * 100%);
+  inline-size: var(--border-hairline);
+  background-color: var(--color-line-strong);
+}
+
+.railLabel {
+  min-inline-size: 7.5rem;
+  text-align: end;
+}
+
+@media (min-width: 48rem) {
+  .scrim {
+    --scrim-reach: 64%;
+  }
+
+  .inner {
+    padding-block-end: var(--space-6);
+  }
+
+  .railLabel {
+    min-inline-size: 9rem;
+  }
+}
+
+/*
+ * Reduced motion: no pinning and no scrubbing. The finished lens sits at the
+ * top, and the chapters follow in order, each with room to breathe.
+ */
+[data-mode='static'] .track {
+  block-size: auto;
+}
+
+[data-mode='static'] .stage {
+  position: relative;
+  block-size: auto;
+  contain: none;
+}
+
+[data-mode='static'] .canvas {
+  position: relative;
+  inset: auto;
+  z-index: auto;
+  block-size: min(72svh, 100vw);
+}
+
+/* The glow belongs behind the lens, not behind every chapter below it. */
+[data-mode='static'] .lighting {
+  inset-block-end: auto;
+  block-size: min(72svh, 100vw);
+}
+
+[data-mode='static'] .scrim,
+[data-mode='static'] .rail {
+  display: none;
+}
+
+[data-mode='static'] .inner {
+  block-size: auto;
+  padding-block: 0 var(--space-section);
+}
+
+[data-mode='static'] .chapters {
+  row-gap: var(--space-9);
+}
