@@ -16,6 +16,24 @@
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-in: cubic-bezier(0.5, 0, 0.75, 0);
+<<<<<<< Updated upstream
+=======
+
+  /* Reveals (see ../reveal.css): one duration, one curve, one rise for every piece of text that enters. */
+  --reveal-duration: var(--duration-slower);
+  --reveal-ease: var(--ease-out-expo);
+  --reveal-rise: 1rem;
+
+  /*
+   * Stagger. Each item waits `--i` steps (capped at `--stagger-max`, so a long
+   * heading never drags the section out) after the group it belongs to.
+   */
+  --stagger-step: 80ms;
+  --stagger-max: 10;
+
+  /* Copy that follows a scene-level move waits this long behind it (the Hero's text behind its lens). */
+  --lead-after-stage: 450ms;
+>>>>>>> Stashed changes
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -26,5 +44,11 @@
     --duration-slow: 1ms;
     --duration-slower: 1ms;
     --duration-cinematic: 1ms;
+<<<<<<< Updated upstream
+=======
+    --duration-ambient: 1ms;
+    --stagger-step: 0ms;
+    --lead-after-stage: 0ms;
+>>>>>>> Stashed changes
   }
 }

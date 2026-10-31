@@ -1,4 +1,4 @@
-import type { StoryChapterSpec, StoryView } from './story-timeline'
+import type { StoryChapterSpec } from './story-timeline'
 
 /*
  * The story's tuning knobs, in one place: when each chapter owns the scroll
@@ -61,31 +61,3 @@ export const STORY_TIMING: readonly StoryChapterSpec[] = [
     pose: { in: { zoom: REST_ZOOM } },
   },
 ]
-
-export type StoryMode = 'full' | 'compact'
-
-export interface StoryModeConfig {
-  /** Height of the whole story, in viewport heights: the stage is pinned for this minus one. */
-  readonly scrollLength: number
-  readonly view: StoryView
-  /** Time constant, in ms, of the ease between the scroll position and what is shown. 0 follows the scroll exactly. */
-  readonly smoothingMs: number
-  /** Cap on canvas pixels per CSS pixel. */
-  readonly maxDpr: number
-}
-
-export const STORY_MODES: Readonly<Record<StoryMode, StoryModeConfig>> = {
-  full: {
-    scrollLength: 6,
-    view: { zoomGain: 1, offsetY: 0.1 },
-    smoothingMs: 90,
-    maxDpr: 2,
-  },
-  // Phones: a shorter story, gentler close-ups, the lens lifted above the copy, and fewer pixels to fill.
-  compact: {
-    scrollLength: 4.5,
-    view: { zoomGain: 0.6, offsetY: 0.5 },
-    smoothingMs: 70,
-    maxDpr: 1.5,
-  },
-}

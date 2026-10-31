@@ -1,4 +1,5 @@
 export { Container } from './Container/Container'
+export { ErrorBoundary } from './ErrorBoundary/ErrorBoundary'
 export { Navigation } from './Navigation/Navigation'
 export { SiteFooter } from './SiteFooter/SiteFooter'
 export { SiteHeader } from './SiteHeader/SiteHeader'

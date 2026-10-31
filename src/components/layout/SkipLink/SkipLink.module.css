@@ -1,7 +1,7 @@
 .skipLink {
   position: fixed;
-  inset-block-start: var(--space-3);
-  inset-inline-start: var(--space-3);
+  inset-block-start: calc(var(--space-3) + var(--safe-top));
+  inset-inline-start: calc(var(--space-3) + var(--safe-inline));
   z-index: var(--z-skip);
   padding: var(--space-3) var(--space-5);
   border-radius: var(--radius-xs);

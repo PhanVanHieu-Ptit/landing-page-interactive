@@ -8,10 +8,22 @@ import type {
   SequenceState,
   SequenceStatus,
 } from '../imageSequence.types'
-import { buildFrameUrl, clampFrameIndex, frameCost, resolveSource } from './sequenceMath'
+import { BEHIND_PENALTY, buildFrameUrl, clampFrameIndex, frameCost, resolveSource } from './sequenceMath'
 
 /** Permanent failures, with nothing loaded yet, after which the loader gives up. A shorter hole never trips it. */
 const GIVE_UP_AFTER = 12
+
+const MIB = 1024 * 1024
+/** The 16-frame window at 1080p (about 133 MB) with a little to spare: only frames larger than the recommended ceiling are held to fewer. */
+const DEFAULT_MAX_DECODED_BYTES = 160 * MIB
+/** Far above a sequence encoded to the README's targets (240 frames at about 120 KB), so by default nothing is dropped. */
+const DEFAULT_MAX_CACHED_BYTES = 128 * MIB
+/** The decode window never shrinks below this, whatever the byte budget says: fewer would stall a slow scrub. */
+const MIN_DECODED = 3
+/** Downloaded files needed before their average size says anything about the rest. */
+const MIN_SIZE_SAMPLE = 4
+/** A window of cost `c` holds this many frames: `c` ahead of the playhead and `c / BEHIND_PENALTY` behind it. */
+const FRAMES_PER_COST = 1 + 1 / BEHIND_PENALTY
 
 /**
  * The browser APIs the loader touches, so tests can drive the scheduler with
@@ -92,9 +104,11 @@ async function download(
 
 /**
  * Creates the engine behind `useImageSequence`: it downloads frames nearest the
- * playhead first, keeps every downloaded file, and holds only a window of
+ * playhead first, keeps the downloaded files, and holds only a window of
  * decoded bitmaps, because a decoded 1080p frame is about 8 MB and 240 of them
- * would not fit on a phone.
+ * would not fit on a phone. Both are bounded by bytes as well as by count
+ * (`maxDecodedBytes`, `maxCachedBytes`, `lookahead`): by default the files of a
+ * normally encoded sequence all stay, and only the decoded window is capped.
  *
  * One cost function (`frameCost`) orders downloads, decodes and evictions:
  * frames ahead of the playhead in its direction of travel are cheap, frames
@@ -121,7 +135,9 @@ export function createFrameLoader(
   const total = source.frameCount
   const fetchConcurrency = intOption(options.fetchConcurrency, 4, 1)
   const decodeConcurrency = intOption(options.decodeConcurrency, 2, 1)
-  const maxDecoded = intOption(options.maxDecodedFrames, 16, 3)
+  const maxDecoded = intOption(options.maxDecodedFrames, 16, MIN_DECODED)
+  const maxDecodedBytes = intOption(options.maxDecodedBytes, DEFAULT_MAX_DECODED_BYTES, 1)
+  const maxCachedBytes = intOption(options.maxCachedBytes, DEFAULT_MAX_CACHED_BYTES, 1)
   const retries = intOption(options.retries, 2, 0)
   const retryDelayMs = options.retryDelayMs !== undefined && options.retryDelayMs >= 0 ? options.retryDelayMs : 250
 
@@ -152,6 +168,11 @@ export function createFrameLoader(
   let decoding = 0
   // Decoded bitmaps currently held.
   let live = 0
+  // The decode window in frames: `maxDecoded`, held lower once the frame size shows that many would exceed `maxDecodedBytes`.
+  let decodeBudget = maxDecoded
+  // Downloaded files currently held, and their total size.
+  let held = 0
+  let cachedBytes = 0
   let loaded = 0
   let failed = 0
   let frameSize: FrameSize | null = null
@@ -167,7 +188,29 @@ export function createFrameLoader(
 
   /** Frames within this many cost units of the playhead are the ones worth having decoded. */
   const windowSize = maxDecoded
+  // Never below the decode window: a look-ahead shorter than what is decoded would starve the decoder.
+  const lookahead =
+    options.lookahead !== undefined && options.lookahead > 0 ? Math.max(windowSize, options.lookahead) : Number.POSITIVE_INFINITY
+  // The cost of the farthest frame there can be: a window this wide holds the whole sequence.
+  const farthest = total * BEHIND_PENALTY
   const cost = (index: number) => frameCost(index, playhead, direction)
+
+  /**
+   * How far from the playhead, in cost units, frames are downloaded and kept. Infinite (the whole sequence) unless
+   * the look-ahead or the byte cap says otherwise. In `focus` mode it is the decode window, as it always was.
+   * Everything that fetches or drops a file asks this, and cost only changes when the playhead moves, so a frame
+   * is never both wanted and dropped.
+   */
+  function fetchLimit(): number {
+    if (preload === 'focus') return windowSize
+    let limit = lookahead
+    // The average file says how many fit; with too few downloaded to tell, trust the look-ahead alone.
+    if (held >= MIN_SIZE_SAMPLE && cachedBytes > 0) {
+      const fit = Math.floor(maxCachedBytes / (cachedBytes / held) / FRAMES_PER_COST)
+      limit = Math.min(limit, Math.max(windowSize, fit))
+    }
+    return limit >= farthest ? Number.POSITIVE_INFINITY : limit
+  }
 
   function buildState(): SequenceState {
     const settled = loaded + failed
@@ -198,11 +241,12 @@ export function createFrameLoader(
   function pickFetch(): Slot | null {
     let best: Slot | null = null
     let bestCost = Number.POSITIVE_INFINITY
+    // Focus mode, a look-ahead and the byte cap all skip the long tail the same way.
+    const limit = fetchLimit()
     for (const slot of slots) {
       if (slot.fetchState !== 'idle') continue
       const slotCost = cost(slot.index)
-      // Focus mode skips the long tail entirely.
-      if (preload === 'focus' && slotCost >= windowSize) continue
+      if (slotCost >= limit) continue
       if (slotCost < bestCost) {
         best = slot
         bestCost = slotCost
@@ -249,11 +293,18 @@ export function createFrameLoader(
       startFetch(slot)
     }
 
+    // The window can shrink after the fact, once the first frame shows how big they are.
+    while (live > decodeBudget) {
+      const victim = pickVictim()
+      if (!victim) break
+      evict(victim)
+    }
+
     while (decoding < decodeConcurrency) {
       const slot = pickDecode()
       if (!slot) break
       // The budget counts decodes in flight: otherwise a burst of late arrivals would overshoot it.
-      if (live + decoding >= maxDecoded) {
+      if (live + decoding >= decodeBudget) {
         const victim = pickVictim()
         // Evict only for a frame that matters more; equal cost never swaps, which is what stops thrashing.
         if (!victim || cost(victim.index) <= cost(slot.index)) break
@@ -279,6 +330,10 @@ export function createFrameLoader(
         slot.blob = blob
         slot.fetchState = 'done'
         loaded++
+        held++
+        cachedBytes += blob.size
+        // The average file size just changed, and with it how many fit.
+        trimFiles()
         markDirty()
         pump()
       },
@@ -316,6 +371,10 @@ export function createFrameLoader(
   function markFailed(slot: Slot, reason: string): void {
     // A decode failure arrives after the download was counted as loaded.
     if (slot.fetchState === 'done') loaded--
+    if (slot.blob) {
+      held--
+      cachedBytes -= slot.blob.size
+    }
     slot.fetchState = 'failed'
     slot.blob = null
     failed++
@@ -369,7 +428,12 @@ export function createFrameLoader(
         slot.bitmap = bitmap
         slot.decodeState = 'done'
         live++
-        frameSize ??= { width: bitmap.width, height: bitmap.height }
+        if (frameSize === null) {
+          frameSize = { width: bitmap.width, height: bitmap.height }
+          // Every frame shares this size, so the byte budget now says how many may be decoded at once.
+          const perFrame = Math.max(1, bitmap.width * bitmap.height * 4)
+          decodeBudget = Math.min(maxDecoded, Math.max(MIN_DECODED, Math.floor(maxDecodedBytes / perFrame)))
+        }
         markDirty()
         // Refill the lanes before notifying, so a throwing listener cannot stall loading.
         pump()
@@ -392,6 +456,33 @@ export function createFrameLoader(
     markDirty()
   }
 
+  /**
+   * Lets go of downloaded files the playhead has left far behind, when a look-ahead or the byte cap bounds what is
+   * kept. The frame goes back in the queue, so it is fetched again if the playhead returns. A file whose frame is
+   * decoded or decoding stays: its bitmap is what is shown, and it is let go once that is evicted. Nothing happens
+   * with the whole sequence in reach, which is the default.
+   */
+  function trimFiles(): void {
+    if (preload !== 'all') return
+    const limit = fetchLimit()
+    if (limit === Number.POSITIVE_INFINITY) return
+    // Hysteresis: a file is fetched inside `limit` and dropped only beyond `keep`, so one on the line never flickers
+    // between the two as the average file size settles.
+    const keep = limit + windowSize
+    let dropped = false
+    for (const slot of slots) {
+      const blob = slot.blob
+      if (!blob || slot.fetchState !== 'done' || slot.decodeState !== 'idle' || cost(slot.index) < keep) continue
+      slot.blob = null
+      slot.fetchState = 'idle'
+      loaded--
+      held--
+      cachedBytes -= blob.size
+      dropped = true
+    }
+    if (dropped) markDirty()
+  }
+
   function focus(index: number): void {
     const next = clampFrameIndex(index, total)
     if (next === playhead) return
@@ -404,6 +495,7 @@ export function createFrameLoader(
         if (slot.fetchState === 'inflight' && cost(slot.index) > 2 * windowSize) abortFetch(slot)
       }
     }
+    trimFiles()
     pump()
   }
 

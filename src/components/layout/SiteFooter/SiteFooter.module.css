@@ -36,13 +36,6 @@
   color: var(--color-accent);
 }
 
-.wordmark {
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  line-height: 1;
-  letter-spacing: 0.01em;
-}
-
 .tagline {
   max-inline-size: 14ch;
   color: var(--color-text-secondary);
@@ -55,6 +48,12 @@
   display: grid;
   gap: var(--space-2);
   align-content: start;
+  font-style: normal;
+}
+
+/* Only the contact details are an <address>; it adds no box, so the column's rhythm stays the same. */
+.contact {
+  display: contents;
   font-style: normal;
 }
 
@@ -73,6 +72,29 @@
   transition: color var(--duration-fast) var(--ease-standard);
 }
 
+<<<<<<< Updated upstream
+=======
+/* Fingers need 44px; a pointer does not. */
+@media (pointer: coarse) {
+  .link {
+    min-block-size: var(--target-min);
+  }
+}
+
+/* The same sweep-through underline as the navigation links (see Navigation.module.css). */
+.link::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0.5rem;
+  block-size: var(--border-hairline);
+  background-color: currentColor;
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform var(--duration-base) var(--ease-out-quint);
+}
+
+>>>>>>> Stashed changes
 .toTop {
   inline-size: fit-content;
 }
@@ -124,6 +146,12 @@
   white-space: nowrap;
   user-select: none;
   pointer-events: none;
+}
+
+@media (forced-colors: active) {
+  .ghost {
+    display: none;
+  }
 }
 
 @media (min-width: 48rem) {

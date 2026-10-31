@@ -8,6 +8,8 @@
  * the first scroll), every calc() below falls back to the resting pose.
  */
 .hero {
+  /* The copy waits for the lens, which starts first (see ProductStage). */
+  --reveal-lead: var(--lead-after-stage);
   position: relative;
   isolation: isolate;
   display: grid;
@@ -55,16 +57,7 @@
   z-index: -1;
   background-image:
     linear-gradient(to bottom, color-mix(in srgb, var(--color-bg) 72%, transparent), transparent),
-    linear-gradient(
-      to top,
-      var(--color-bg) 0%,
-      color-mix(in srgb, var(--color-bg) 95%, transparent) 15%,
-      color-mix(in srgb, var(--color-bg) 82%, transparent) 33%,
-      color-mix(in srgb, var(--color-bg) 56%, transparent) 51%,
-      color-mix(in srgb, var(--color-bg) 26%, transparent) 69%,
-      color-mix(in srgb, var(--color-bg) 8%, transparent) 87%,
-      transparent
-    );
+    var(--scrim-bottom);
   background-position:
     top,
     bottom;
@@ -99,24 +92,6 @@
   margin: 0;
   max-inline-size: 6.4em;
   font-size: var(--text-hero);
-}
-
-/*
- * Each headline word sits in a mask, and the entrance slides it up from below
- * the mask's edge. The block padding and equal negative margin leave room for
- * ascenders and descenders that the tight line height would otherwise slice
- * off; the inline pair does the same for the overhang of italic letters.
- */
-.word {
-  display: inline-block;
-  padding: 0.12em 0.06em;
-  margin: -0.12em -0.06em;
-  overflow: clip;
-  vertical-align: top;
-}
-
-.wordInner {
-  display: inline-block;
 }
 
 .foot {
@@ -159,8 +134,96 @@
   }
 }
 
+<<<<<<< Updated upstream
 /* Desktop: a larger, higher lens, with the scroll cue in the middle of the rail, clear of the copy. */
 @media (min-width: 64rem) {
+=======
+/*
+ * A short portrait phone (an SE, a small Android) has no height to spare: the
+ * scroll cue goes, and the lens gets the room instead. The copy running past
+ * the fold already says there is more.
+ */
+@media (max-height: 43.75rem) {
+  .rail {
+    display: none;
+  }
+
+  /* With the rail gone its row is empty, but the gap before it would still push the copy up from the bottom edge. */
+  .inner {
+    row-gap: 0;
+  }
+}
+
+/*
+ * Split: a phone on its side, or any landscape window under 40rem tall. The
+ * copy takes the left column, bottom-aligned, and the lens the right, so
+ * neither is squeezed by the missing height. The scroll cue goes: the page
+ * itself is the cue when a screen is this short. (39.99rem, not 40rem, so this
+ * and the overlay's `min-height: 40rem` never both match.)
+ */
+@media (orientation: landscape) and (max-height: 39.99rem) {
+  .hero {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .inner {
+    grid-column: 1;
+    grid-row: 1;
+    padding-block-start: calc(var(--header-h) + var(--space-2));
+    padding-block-end: max(var(--space-4), var(--safe-bottom));
+  }
+
+  .stageZone {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .copy {
+    gap: var(--space-3);
+  }
+
+  .title {
+    font-size: clamp(2rem, min(5vw, 11svh), 4rem);
+  }
+
+  /* One step down, so the copy fits the height it has instead of pushing the section past the screen. */
+  .lede {
+    font-size: var(--text-base);
+    max-inline-size: 44ch;
+  }
+
+  .foot {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+
+  .cta {
+    justify-self: start;
+  }
+}
+
+/*
+ * Overlay: desktop and laptop. The lens leaves its zone and fills the section,
+ * larger and higher; the headline is set over it, which is why this layout
+ * (and no other) has a scrim. The scroll cue sits in the middle of the rail,
+ * clear of the copy.
+ */
+@media (min-width: 64rem) and (min-height: 40rem) and (orientation: landscape) {
+  .hero {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .scrim {
+    display: block;
+  }
+
+  /* No box of its own: the lens positions itself against the section, as the zone is not there. */
+  .stageZone {
+    display: contents;
+  }
+
+>>>>>>> Stashed changes
   .stageFrame {
     inset-block-start: 40svh;
     inline-size: min(62vw, 74svh);

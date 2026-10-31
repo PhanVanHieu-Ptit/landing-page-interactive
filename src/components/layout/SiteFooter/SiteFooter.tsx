@@ -5,10 +5,21 @@ import { Container } from '../Container/Container'
 import { Navigation } from '../Navigation/Navigation'
 import styles from './SiteFooter.module.css'
 
+<<<<<<< Updated upstream
+=======
+/** The footer's columns enter left to right, one stagger step apart. */
+const column = (position: number) => cssVars({ '--i': position })
+
+interface SiteFooterProps {
+  /** Takes the footer out of the tab order and the accessibility tree (while the mobile menu covers it). */
+  inert?: boolean | undefined
+}
+
+>>>>>>> Stashed changes
 /** Closing band: brand, links, contact and the fictional-brand note, over an oversized ghost wordmark. */
-export function SiteFooter() {
+export function SiteFooter({ inert }: SiteFooterProps) {
   return (
-    <footer className={styles.footer}>
+    <footer className={styles.footer} inert={inert}>
       <Container>
         <div className={styles.rule} aria-hidden="true" />
 
@@ -16,7 +27,7 @@ export function SiteFooter() {
           <div className={styles.brand}>
             <div className={styles.lockup}>
               <LogoMark className={styles.mark} />
-              <span className={styles.wordmark}>{site.name}</span>
+              <span className="type-wordmark">{site.name}</span>
             </div>
             <p className={styles.tagline}>{site.tagline}</p>
           </div>
@@ -26,16 +37,22 @@ export function SiteFooter() {
             <Navigation items={footerItems} label="Footer" variant="footer" />
           </div>
 
+<<<<<<< Updated upstream
           <address className={styles.group}>
+=======
+          <div data-reveal-item="" className={styles.group} style={column(2)}>
+>>>>>>> Stashed changes
             <p className={cx(styles.groupLabel, 'type-eyebrow')}>Contact</p>
-            <a className={styles.link} href={`mailto:${site.email}`}>
-              {site.email}
-            </a>
+            <address className={styles.contact}>
+              <a className={styles.link} href={`mailto:${site.email}`}>
+                {site.email}
+              </a>
+            </address>
             <a className={cx(styles.link, styles.toTop)} href="#top">
               Back to top
               <ArrowUpIcon className={styles.arrow} />
             </a>
-          </address>
+          </div>
         </div>
 
         <div className={styles.legal}>

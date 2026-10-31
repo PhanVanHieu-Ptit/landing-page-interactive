@@ -11,7 +11,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  min-block-size: 2.75rem;
+  min-block-size: var(--target-min);
   color: var(--color-text-secondary);
   transition: color var(--duration-fast) var(--ease-standard);
 }
@@ -56,7 +56,7 @@
     color: var(--color-text-secondary);
     font-family: var(--font-sans);
     font-size: var(--text-sm);
-    letter-spacing: 0.04em;
+    letter-spacing: var(--tracking-nav);
   }
 
   .header .link::after {
@@ -74,7 +74,22 @@
   font-size: var(--text-sm);
 }
 
+<<<<<<< Updated upstream
 /* Interaction states come last, with `.nav` in the selector so they outrank the variant rules above. */
+=======
+/* Fingers need 44px; a pointer does not, and the footer is dense enough to want the 36. */
+@media (pointer: coarse) {
+  .footer .link {
+    min-block-size: var(--target-min);
+  }
+}
+
+/*
+ * Interaction states come last, with `.nav` in the selector so they outrank the
+ * variant rules above. Keyboard focus mirrors hover, and while one link is
+ * engaged its siblings step back to the tertiary tone.
+ */
+>>>>>>> Stashed changes
 @media (hover: hover) {
   .nav .link:hover {
     color: var(--color-text-primary);

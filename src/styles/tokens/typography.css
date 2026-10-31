@@ -27,15 +27,20 @@
   --text-display: clamp(3.25rem, 1.8333rem + 6.2963vw, 7.5rem); /* 52 → 120 h1 */
   --text-hero: clamp(3.75rem, 1.5rem + 9vw, 9rem); /* 60 → 144 hero headline, set over the product */
   --text-ghost: clamp(6rem, 24vw, 24rem); /* decorative footer wordmark only */
+  --text-wordmark: 1.5rem; /* the brand name beside the mark, in the header and the footer */
 
   --leading-display: 0.94;
   --leading-title: 1.04;
   --leading-snug: 1.2;
   --leading-lede: 1.5;
   --leading-body: 1.6;
+  --leading-label: 1.4;
 
   --tracking-display: -0.025em;
   --tracking-title: -0.018em;
   --tracking-normal: 0;
   --tracking-label: 0.14em;
+  --tracking-data: 0.02em;
+  --tracking-nav: 0.04em;
+  --tracking-wordmark: 0.01em;
 }

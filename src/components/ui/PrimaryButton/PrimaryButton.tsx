@@ -22,7 +22,7 @@ function isAnchor(props: PrimaryButtonProps): props is AnchorProps {
 function ButtonContent({ icon, children }: { icon: boolean; children: ReactNode }) {
   return (
     <>
-      <span className={styles.label}>{children}</span>
+      {children}
       {icon ? <ArrowRightIcon className={styles.icon} /> : null}
     </>
   )

@@ -185,7 +185,9 @@ export function createStoryController(timeline: StoryTimeline): StoryController 
 
       // Nothing to animate while the story is more than a screen away. Re-enter with a jump: the scroll position moved on without us.
       const visibility = new IntersectionObserver(
-        ([entry]) => {
+        (entries) => {
+          // Entries arrive oldest first and a busy frame can queue several: the last one is where the track is now.
+          const entry = entries.at(-1)
           if (!entry) return
           visible = entry.isIntersecting
           if (visible) jump()

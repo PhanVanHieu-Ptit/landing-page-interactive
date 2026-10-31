@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef } from 'react'
 import { fitCanvas } from '@/animation/canvas'
 import { DEFAULT_LENS_PARAMS, drawLens, readLensPalette, type LensParams } from '@/animation/lens'
 import { LENS_INTRO_START, playLensIntro, playStageEntrance } from '@/animation/stage-intro'
+import { useDevicePixelRatio } from '@/hooks/useDevicePixelRatio'
 import { useElementSize } from '@/hooks/useElementSize'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { cx } from '@/lib/cx'
@@ -24,9 +25,21 @@ export function ProductStage({ className, introduce = false }: ProductStageProps
   const [wrapperRef, size] = useElementSize<HTMLDivElement>()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const reducedMotion = usePrefersReducedMotion()
+<<<<<<< Updated upstream
   // Set when the iris has finished opening, so a later resize repaints the resting lens instead of replaying it.
   const introduced = useRef(false)
+=======
+  const pixelRatio = useDevicePixelRatio()
+  const gate = useIntroGate()
+>>>>>>> Stashed changes
   const animate = introduce && !reducedMotion
+
+  // Where the lens is right now, kept outside the effects: the canvas is rebuilt on every resize, and a rebuild in the
+  // middle of the intro must carry on from this pose, not start over.
+  const params = useRef<LensParams>(animate ? LENS_INTRO_START : DEFAULT_LENS_PARAMS)
+  const paintCurrent = useRef<(() => void) | null>(null)
+  // Set when the iris has finished opening, so a later remount repaints the resting lens instead of replaying it.
+  const introduced = useRef(false)
 
   // Before first paint, so the lens never shows at full strength for a frame.
   useLayoutEffect(() => {
@@ -35,6 +48,7 @@ export function ProductStage({ className, introduce = false }: ProductStageProps
     return playStageEntrance(wrapper)
   }, [animate, wrapperRef])
 
+  // The canvas: sized to the box and the screen's pixel ratio, and redrawn at whatever pose the lens is in.
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas || size.width < 1 || size.height < 1) return undefined
@@ -43,6 +57,7 @@ export function ProductStage({ className, introduce = false }: ProductStageProps
     if (!fitted) return undefined
 
     const palette = readLensPalette(canvas)
+<<<<<<< Updated upstream
     let current: LensParams = DEFAULT_LENS_PARAMS
     const paint = (params: LensParams) => {
       current = params
@@ -58,21 +73,53 @@ export function ProductStage({ className, introduce = false }: ProductStageProps
     } else {
       paint(DEFAULT_LENS_PARAMS)
     }
+=======
+    const paint = () => drawLens(fitted.ctx, size.width, size.height, palette, params.current)
+    paintCurrent.current = paint
+    paint()
+>>>>>>> Stashed changes
 
     // The engraved scale uses the mono webfont; repaint once it has loaded.
     let cancelled = false
     document.fonts.load('500 12px "JetBrains Mono"').then(
       () => {
-        if (!cancelled) paint(current)
+        if (!cancelled) paint()
       },
       () => undefined,
     )
 
     return () => {
       cancelled = true
-      cancelIntro?.()
+      if (paintCurrent.current === paint) paintCurrent.current = null
     }
+<<<<<<< Updated upstream
   }, [size.width, size.height, animate])
+=======
+  }, [size.width, size.height, pixelRatio])
+
+  // The iris opening, once the loading screen lets go. It paints through `paintCurrent`, so it outlives any canvas rebuild.
+  useEffect(() => {
+    if (!animate) {
+      params.current = DEFAULT_LENS_PARAMS
+      paintCurrent.current?.()
+      return undefined
+    }
+    if (introduced.current) return undefined
+
+    params.current = LENS_INTRO_START
+    paintCurrent.current?.()
+    return playLensIntro(
+      (next) => {
+        params.current = next
+        paintCurrent.current?.()
+      },
+      () => {
+        introduced.current = true
+      },
+      gate.released,
+    )
+  }, [animate, gate])
+>>>>>>> Stashed changes
 
   return (
     <div ref={wrapperRef} className={cx(styles.stage, className)}>

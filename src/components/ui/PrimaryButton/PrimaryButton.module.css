@@ -21,7 +21,7 @@
 }
 
 .sm {
-  min-block-size: 2.75rem;
+  min-block-size: var(--target-min);
   padding-inline: var(--space-5);
 }
 
@@ -32,6 +32,30 @@
   transition: transform var(--duration-base) var(--ease-out-quint);
 }
 
+<<<<<<< Updated upstream
+=======
+/*
+ * A hairline ring that opens around the button on hover: the border animates
+ * outward from the edge as it fades in. It is a pseudo-element, not `outline`,
+ * so the keyboard focus ring keeps that property to itself (and gets no second
+ * ring beside it).
+ */
+.button::after {
+  content: '';
+  position: absolute;
+  /* `inset` animates on purpose: it is an absolutely positioned decoration, so it moves nothing else, and scaling it would stretch the hairline. */
+  inset: 0;
+  border: var(--border-hairline) solid var(--color-text-primary);
+  border-radius: var(--radius-xs);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    inset var(--duration-base) var(--ease-out-quint),
+    border-radius var(--duration-base) var(--ease-out-quint),
+    opacity var(--duration-base) var(--ease-out-quint);
+}
+
+>>>>>>> Stashed changes
 @media (hover: hover) {
   .button:hover {
     background-color: var(--color-accent-strong);

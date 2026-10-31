@@ -9,6 +9,27 @@
  *   md 48rem   tablet: inline navigation, two-column grids
  *   lg 64rem   desktop: a larger hero lens and four-column grids
  *   xl 80rem   wide desktop: the container stops growing
+<<<<<<< Updated upstream
+=======
+ *   2xl 90rem  large desktop: the root font size starts to grow (see below)
+ *
+ * Three queries are deliberately not on this scale, because they answer a
+ * different question than "how wide is the page":
+ *
+ *   22.4375rem  the header hides its wordmark below this width (a 320px phone at
+ *               the default font size has 280px of bar for the button and toggle)
+ *   43.75rem    the Hero drops its scroll cue below this height
+ *   20rem       the scroll story stops pinning below this height
+ *               (`CRAMPED_QUERY` in `src/animation/story-layout.ts`)
+ *
+ * Composition does not follow width alone. The Hero and the scroll story pick
+ * one of three layouts from width, height and orientation together (the
+ * literals live in `src/animation/story-layout.ts`, `LAYOUT_QUERIES`):
+ *
+ *   overlay  64rem wide, 40rem tall, landscape: copy sits over the product
+ *   split    landscape and under 40rem tall: copy and product side by side
+ *   stacked  everything else: the product above, the copy below
+>>>>>>> Stashed changes
  */
 :root {
   --bp-sm: 40rem;
@@ -19,7 +40,25 @@
   --container-max: 80rem;
   --container-narrow: 46rem;
 
+<<<<<<< Updated upstream
   --header-h: 4rem;
+=======
+  /* The smallest height of anything that can be pressed (44px or more, WCAG 2.5.5). */
+  --target-min: 2.75rem;
+
+  /*
+   * Safe areas (notch, rounded corners, home indicator). `viewport-fit=cover`
+   * lets the page run edge to edge, so anything near an edge must keep clear.
+   * The page is centered, so the inline inset is the larger of the two sides.
+   */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-inline: max(env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
+
+  /* The bar itself; `--header-h` is what the content below has to clear: the bar plus whatever the status bar or notch covers. */
+  --header-bar: 4rem;
+  --header-h: calc(var(--header-bar) + var(--safe-top));
+>>>>>>> Stashed changes
 
   /* Stacking order */
   --z-base: 0;

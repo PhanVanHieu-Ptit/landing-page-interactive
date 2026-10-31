@@ -3,7 +3,7 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-3);
-  min-block-size: 2.75rem;
+  min-block-size: var(--target-min);
   color: var(--color-text-secondary);
   transition: color var(--duration-fast) var(--ease-standard);
 }

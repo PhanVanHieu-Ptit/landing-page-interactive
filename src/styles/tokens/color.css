@@ -67,6 +67,22 @@
   );
   --light-vignette: radial-gradient(120% 100% at 50% 38%, transparent 52%, rgb(0 0 0 / 0.5) 100%);
 
+  /*
+   * The fade that darkens the foot of a scene so copy set over the product stays
+   * readable. It ends on exactly the page color, and its stops approximate an
+   * ease, so it has no visible edge. Used by the Hero and the scroll story.
+   */
+  --scrim-bottom: linear-gradient(
+    to top,
+    var(--color-bg) 0%,
+    color-mix(in srgb, var(--color-bg) 94%, transparent) 15%,
+    color-mix(in srgb, var(--color-bg) 82%, transparent) 33%,
+    color-mix(in srgb, var(--color-bg) 58%, transparent) 51%,
+    color-mix(in srgb, var(--color-bg) 28%, transparent) 69%,
+    color-mix(in srgb, var(--color-bg) 8%, transparent) 87%,
+    transparent
+  );
+
   /* A hairline that fades out at both ends: the system's signature divider */
   --rule-fade: linear-gradient(
     90deg,

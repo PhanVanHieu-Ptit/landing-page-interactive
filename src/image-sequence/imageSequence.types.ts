@@ -73,6 +73,27 @@ export interface FrameLoaderOptions {
    * × 4 bytes, so this is what bounds memory.
    */
   maxDecodedFrames?: number | undefined
+  /**
+   * Upper bound on the memory the decoded bitmaps hold, in bytes (each costs width × height × 4). Once the first
+   * frame reports its size, the decode window becomes `min(maxDecodedFrames, maxDecodedBytes / that cost)`, never
+   * below 3. Defaults to 160 MiB, which is the 16-frame window at 1080p, so by default only frames larger than the
+   * recommended ceiling are held to fewer. A phone-sized budget is a few tens of MiB (see `core/tiers.ts`).
+   */
+  maxDecodedBytes?: number | undefined
+  /**
+   * Upper bound on the downloaded files kept in memory, in bytes. When the average file size would put the whole
+   * sequence over it, the loader only downloads, and only keeps, the frames nearest the playhead that fit; the rest
+   * are fetched again when the playhead comes back (the HTTP cache usually answers). Defaults to 128 MiB, far
+   * above a sequence encoded to the README's targets, so by default it changes nothing.
+   */
+  maxCachedBytes?: number | undefined
+  /**
+   * How far from the playhead frames are downloaded and kept, in cost units: one per frame ahead, and 2.5 per frame
+   * behind (see `frameCost`). Never below the decode window. Defaults to no limit, which downloads the whole
+   * sequence. With a limit (here or from `maxCachedBytes`) the sequence never reaches `complete`: some frames are
+   * deliberately not held.
+   */
+  lookahead?: number | undefined
   /** How often a transient failure (network error, 408, 429, 5xx) is retried. Defaults to 2. */
   retries?: number | undefined
   /** Delay before the first retry, in milliseconds; it doubles after each one. Defaults to 250. */
@@ -87,7 +108,8 @@ export interface FrameLoaderOptions {
  * - `idle`: not started, or stopped.
  * - `loading`: running, with nothing drawable yet.
  * - `ready`: at least one frame is decoded and can be drawn; downloads continue.
- * - `complete`: every frame has either arrived or failed for good.
+ * - `complete`: every frame has either arrived or failed for good. Never reached when a `lookahead` or
+ *   `maxCachedBytes` keeps some frames out on purpose.
  * - `error`: no frame could be loaded at all, so requests have stopped.
  */
 export type SequenceStatus = 'idle' | 'loading' | 'ready' | 'complete' | 'error'
@@ -201,3 +223,29 @@ export interface SequenceFallbackInfo {
  * labels the canvas as a fallback whenever one is drawn.
  */
 export type SequenceFallback = (ctx: CanvasRenderingContext2D, info: SequenceFallbackInfo) => void
+<<<<<<< Updated upstream
+=======
+
+export interface SequenceRendererOptions {
+  canvas: HTMLCanvasElement
+  sequence: ImageSequence
+  progress: ProgressSource
+  /** Defaults to `'cover'`. */
+  fit?: FitMode | undefined
+  /** Defaults to the center. */
+  focal?: FocalPoint | undefined
+  /** Drawn in place of a frame once the sequence has failed to load. Without one, the canvas is left as it is. */
+  fallback?: SequenceFallback | undefined
+}
+
+/** Paints a sequence onto one canvas. It owns the canvas size and the animation frame, and nothing else. */
+export interface SequenceRenderer {
+  /**
+   * Sizes the backing store to `cssWidth × cssHeight × dpr` device pixels and
+   * repaints on the next animation frame. Does nothing visible for an empty box.
+   */
+  resize: (cssWidth: number, cssHeight: number, dpr: number) => void
+  /** Cancels the pending frame and every subscription. Does not stop the loader, which belongs to whoever created it. */
+  dispose: () => void
+}
+>>>>>>> Stashed changes

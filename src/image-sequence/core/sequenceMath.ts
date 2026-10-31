@@ -1,7 +1,7 @@
 import type { ImageSequenceSource, ProgressRange, ResolvedImageSequenceSource } from '../imageSequence.types'
 
 /** Frames behind the playhead count this many times as far as frames ahead: scrolling usually continues forward. */
-const BEHIND_PENALTY = 2.5
+export const BEHIND_PENALTY = 2.5
 
 export const clamp01 = (value: number) => Math.min(1, Math.max(0, value))
 

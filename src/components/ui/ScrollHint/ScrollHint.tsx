@@ -15,7 +15,7 @@ interface ScrollHintProps {
 export function ScrollHint({ href, destination, label = 'Scroll', className }: ScrollHintProps) {
   return (
     <a className={cx(styles.hint, className)} href={href} aria-label={`${label} to ${destination}`}>
-      <span className={cx(styles.label, 'type-eyebrow')}>{label}</span>
+      <span className="type-eyebrow">{label}</span>
       <span className={styles.line} aria-hidden="true" />
     </a>
   )

@@ -31,13 +31,35 @@ export const hero = {
   sectionCount: 5,
 } as const
 
+<<<<<<< Updated upstream
+=======
+/** Copy for the loading screen. The percentage is announced in 25% steps, so the strings stay short. */
+export const preloader = {
+  label: 'Loading the experience',
+  loading: 'Loading the experience',
+  ready: 'Ready.',
+  proceeding: 'Opening the page. Some images are still loading.',
+  unavailable: 'Opening the page. The images could not be loaded.',
+  skip: 'Skip',
+  skipLabel: 'Skip loading and open the page',
+} as const
+
+/** Copy for the screen that replaces the page if it fails to render. Plain words: it may be all a visitor sees. */
+export const crash = {
+  title: 'Something went wrong.',
+  body: 'The page could not be shown. Reloading usually fixes it.',
+  reload: 'Reload the page',
+} as const
+
+>>>>>>> Stashed changes
 export const reserve = {
   index: '05',
   eyebrow: 'First run',
   title: 'First run of *250.*',
   body: 'Reservations are open for the first numbered run. No deposit is taken until your serial number is confirmed.',
+  /** It opens an email, unlike the other "Reserve" calls to action, which scroll here, so it says so. */
   cta: {
-    label: 'Reserve a lens',
+    label: 'Reserve by email',
     href: `mailto:${site.email}?subject=${encodeURIComponent('Reserve an Aurelle 50')}`,
   },
 } as const

@@ -31,6 +31,30 @@ export function fitCanvas(
 }
 
 /**
+ * Calls `onChange` each time the screen's pixel ratio changes while the page
+ * stays put: the window moves to another display, or the page is zoomed on a
+ * layout that does not reflow. A `ResizeObserver` never hears about that, so a
+ * canvas sized for the old ratio would go soft (or oversized) until the next
+ * resize. The media query matches only the current ratio, so it re-arms itself
+ * for the new one on every change. Returns a function that removes it.
+ */
+export function watchDevicePixelRatio(onChange: () => void): () => void {
+  let stop = () => {}
+  const arm = () => {
+    const query = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`)
+    const handle = () => {
+      stop()
+      arm()
+      onChange()
+    }
+    query.addEventListener('change', handle)
+    stop = () => query.removeEventListener('change', handle)
+  }
+  arm()
+  return () => stop()
+}
+
+/**
  * Reads a CSS custom property, so canvas artwork draws from the same design
  * tokens as the stylesheet. Throws when the token is missing: a silent empty
  * string would make canvas ignore the color and paint something wrong.

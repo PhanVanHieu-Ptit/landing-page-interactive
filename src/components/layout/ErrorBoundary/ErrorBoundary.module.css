@@ -1,0 +1,44 @@
+/*
+ * The crash screen. It stands on the document's own background (index.html
+ * paints it) and uses only tokens, so it matches the page it replaces.
+ */
+.screen {
+  display: grid;
+  place-items: center;
+  min-block-size: 100vh;
+  min-block-size: 100svh;
+  padding: calc(var(--space-6) + var(--safe-top)) max(var(--gutter), var(--safe-inline)) calc(var(--space-6) + var(--safe-bottom));
+}
+
+.body {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-4);
+  max-inline-size: 30rem;
+}
+
+.title {
+  margin: 0;
+}
+
+.text {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.reload {
+  min-block-size: var(--target-min);
+  padding-inline: var(--space-5);
+  border: var(--border-hairline) solid var(--color-line-strong);
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+
+@media (hover: hover) {
+  .reload:hover {
+    border-color: var(--color-text-primary);
+  }
+}
