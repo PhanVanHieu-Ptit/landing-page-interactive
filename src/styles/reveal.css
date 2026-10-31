@@ -1,0 +1,117 @@
+/*
+ * Reveals: how text and rules enter the page, from the Hero to the footer.
+ * One duration, one curve and one stagger step (tokens/motion.css) so every
+ * entrance reads as the same gesture.
+ *
+ * Markup contract (the observer lives in src/animation/reveal.ts):
+ *
+ *   data-reveal         a host. When it scrolls into view it gets
+ *                       `data-revealed`, once.
+ *   data-reveal-item    something that waits for its host. It may be the host
+ *                       itself or any descendant. The value picks the motion:
+ *                         rise (default)  fade in while moving up --reveal-rise
+ *                         mask            slide up out of a clip (headline words)
+ *                         rule            draw a hairline from --reveal-origin
+ *                         fade            opacity only
+ *   --i                 the item's place in the host's sequence. It waits
+ *                       `--i` x --stagger-step (capped by --stagger-max).
+ *   --reveal-lead       extra delay for the whole host, set on the host.
+ *
+ * Keep hosts from nesting: an item is revealed by *any* revealed ancestor.
+ *
+ * The hidden states exist only for users who have not asked for reduced
+ * motion, so those users get the final layout straight from the stylesheet,
+ * with no script in the loop. Only opacity, translate and scale ever change,
+ * so a reveal never forces layout and never touches scrolling.
+ */
+@layer utilities {
+  /*
+   * The mask around each headline word. The block padding and equal negative
+   * margin leave room for ascenders and descenders that a tight line height
+   * would otherwise slice off; the inline pair does the same for the overhang
+   * of italic letters.
+   */
+  .reveal-mask {
+    display: inline-block;
+    padding: 0.12em 0.06em;
+    margin: -0.12em -0.06em;
+    overflow: clip;
+    vertical-align: top;
+  }
+
+  .reveal-mask-inner {
+    display: inline-block;
+  }
+
+  /*
+   * A host with a hairline along its top edge that draws in from the left when
+   * the host is revealed. A pseudo-element, so it also works where an extra
+   * child is not allowed (a <div> inside a <dl>). Without the motion it is
+   * simply a static rule.
+   */
+  .reveal-line {
+    position: relative;
+  }
+
+  .reveal-line::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    block-size: var(--border-hairline);
+    background-color: var(--color-line);
+    transform-origin: left center;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal-line::before {
+      scale: 0 1;
+    }
+
+    .reveal-line[data-revealed]::before {
+      scale: none;
+      transition: scale var(--reveal-duration) var(--reveal-ease) var(--reveal-lead, 0ms);
+    }
+
+    [data-reveal-item] {
+      opacity: 0;
+      translate: 0 var(--reveal-rise);
+    }
+
+    [data-reveal-item='fade'] {
+      translate: none;
+    }
+
+    [data-reveal-item='mask'] {
+      translate: 0 110%;
+    }
+
+    [data-reveal-item='rule'] {
+      translate: none;
+      scale: 0 1;
+      opacity: 1;
+      transform-origin: var(--reveal-origin, left center);
+    }
+
+    /* The transition lives on the revealed state: that is the style a transition runs toward. */
+    [data-reveal-item][data-revealed],
+    [data-revealed] [data-reveal-item] {
+      opacity: 1;
+      translate: none;
+      scale: none;
+      transition:
+        opacity var(--reveal-duration) var(--reveal-ease),
+        translate var(--reveal-duration) var(--reveal-ease),
+        scale var(--reveal-duration) var(--reveal-ease);
+      transition-delay: calc(var(--reveal-lead, 0ms) + min(var(--i, 0), var(--stagger-max)) * var(--stagger-step));
+    }
+  }
+
+  @media print {
+    [data-reveal-item] {
+      opacity: 1 !important;
+      translate: none !important;
+      scale: none !important;
+      transition: none !important;
+    }
+  }
+}

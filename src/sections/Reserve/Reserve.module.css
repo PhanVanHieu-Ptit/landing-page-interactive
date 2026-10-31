@@ -6,7 +6,9 @@
   text-align: center;
 }
 
+/* The light comes up slowly, as a scene-level move: the longest duration on the page. */
 .glow {
+  --reveal-duration: var(--duration-cinematic);
   position: absolute;
   inset: 0;
   z-index: -1;

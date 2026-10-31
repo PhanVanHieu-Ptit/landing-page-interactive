@@ -9,11 +9,11 @@
   margin-block-start: var(--space-9);
 }
 
+/* The top hairline is drawn by `reveal-line` (src/styles/reveal.css). */
 .item {
   display: grid;
   gap: var(--space-2);
   padding-block: var(--space-5);
-  border-block-start: var(--border-hairline) solid var(--color-line);
 }
 
 .label {
@@ -24,10 +24,19 @@
   margin: 0;
 }
 
+/*
+ * Items reveal as each scrolls in. Where they sit side by side, each column
+ * starts one stagger step after the one before it, so a row sweeps in from the
+ * left; in a single column there is nothing to sweep, so there is no lag.
+ */
 @media (min-width: 48rem) {
   .list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     column-gap: var(--space-8);
+  }
+
+  .item:nth-child(2n) {
+    --reveal-lead: var(--stagger-step);
   }
 }
 
@@ -38,5 +47,21 @@
 
   .item {
     padding-block: var(--space-7);
+  }
+
+  .item:nth-child(4n + 1) {
+    --reveal-lead: 0ms;
+  }
+
+  .item:nth-child(4n + 2) {
+    --reveal-lead: var(--stagger-step);
+  }
+
+  .item:nth-child(4n + 3) {
+    --reveal-lead: calc(var(--stagger-step) * 2);
+  }
+
+  .item:nth-child(4n) {
+    --reveal-lead: calc(var(--stagger-step) * 3);
   }
 }

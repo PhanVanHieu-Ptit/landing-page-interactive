@@ -9,12 +9,13 @@
   --space-4: 1rem; /*  16 */
   --space-5: 1.5rem; /*  24 */
   --space-6: 2rem; /*  32 */
-  --space-7: 3rem; /*  48 */
-  --space-8: 4rem; /*  64 */
-  --space-9: 6rem; /*  96 */
   --space-10: 8rem; /* 128 */
 
-  /* Fluid, 360px → 1440px viewport */
-  --space-section: clamp(6rem, 4rem + 8.8889vw, 12rem); /*  96 → 192  vertical rhythm between sections */
-  --gutter: clamp(1.25rem, 0.6667rem + 2.5926vw, 3rem); /*  20 →  48  page side padding */
+  /* Fluid, 360px → 1440px viewport: the big steps are smaller on a phone, where 96px of air is a third of a screen. */
+  --space-7: clamp(2rem, 1.6667rem + 1.4815vw, 3rem); /*  32 →  48 */
+  --space-8: clamp(2.5rem, 2rem + 2.2222vw, 4rem); /*  40 →  64 */
+  --space-9: clamp(3.5rem, 2.6667rem + 3.7037vw, 6rem); /*  56 →  96 */
+  --space-section: clamp(4.5rem, 2rem + 11.111vw, 12rem); /*  72 → 192  vertical rhythm between sections */
+  /* Never less than the safe-area inset, so edge-to-edge pages keep clear of a notch in landscape. */
+  --gutter: max(clamp(1.25rem, 0.6667rem + 2.5926vw, 3rem), var(--safe-inline)); /*  20 →  48  page side padding */
 }

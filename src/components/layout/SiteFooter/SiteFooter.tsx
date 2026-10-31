@@ -1,19 +1,23 @@
 import { ArrowUpIcon, LogoMark } from '@/components/icons'
 import { footerItems, site } from '@/content/site'
 import { cx } from '@/lib/cx'
+import { cssVars } from '@/lib/css-vars'
 import { Container } from '../Container/Container'
 import { Navigation } from '../Navigation/Navigation'
 import styles from './SiteFooter.module.css'
+
+/** The footer's columns enter left to right, one stagger step apart. */
+const column = (position: number) => cssVars({ '--i': position })
 
 /** Closing band: brand, links, contact and the fictional-brand note, over an oversized ghost wordmark. */
 export function SiteFooter() {
   return (
     <footer className={styles.footer}>
       <Container>
-        <div className={styles.rule} aria-hidden="true" />
+        <div data-reveal="" data-reveal-item="rule" className={styles.rule} aria-hidden="true" />
 
-        <div className={styles.top}>
-          <div className={styles.brand}>
+        <div data-reveal="" className={styles.top}>
+          <div data-reveal-item="" className={styles.brand} style={column(0)}>
             <div className={styles.lockup}>
               <LogoMark className={styles.mark} />
               <span className={styles.wordmark}>{site.name}</span>
@@ -21,12 +25,12 @@ export function SiteFooter() {
             <p className={styles.tagline}>{site.tagline}</p>
           </div>
 
-          <div className={styles.group}>
+          <div data-reveal-item="" className={styles.group} style={column(1)}>
             <p className={cx(styles.groupLabel, 'type-eyebrow')}>Explore</p>
             <Navigation items={footerItems} label="Footer" variant="footer" />
           </div>
 
-          <address className={styles.group}>
+          <address data-reveal-item="" className={styles.group} style={column(2)}>
             <p className={cx(styles.groupLabel, 'type-eyebrow')}>Contact</p>
             <a className={styles.link} href={`mailto:${site.email}`}>
               {site.email}
@@ -38,7 +42,7 @@ export function SiteFooter() {
           </address>
         </div>
 
-        <div className={styles.legal}>
+        <div data-reveal="" data-reveal-item="fade" className={styles.legal}>
           <p className="type-body-sm">{site.disclaimer}</p>
           <p className="type-body-sm">
             © {site.year} {site.name}
@@ -46,7 +50,7 @@ export function SiteFooter() {
         </div>
       </Container>
 
-      <p className={styles.ghost} aria-hidden="true">
+      <p data-reveal="" data-reveal-item="" className={styles.ghost} aria-hidden="true">
         {site.name}
       </p>
     </footer>

@@ -31,6 +31,17 @@ export const hero = {
   sectionCount: 5,
 } as const
 
+/** Copy for the loading screen. The percentage is announced in 25% steps, so the strings stay short. */
+export const preloader = {
+  label: 'Loading the experience',
+  loading: 'Loading the experience',
+  ready: 'Ready.',
+  proceeding: 'Opening the page. Some images are still loading.',
+  unavailable: 'Opening the page. The images could not be loaded.',
+  skip: 'Skip',
+  skipLabel: 'Skip loading and open the page',
+} as const
+
 export const reserve = {
   index: '05',
   eyebrow: 'First run',

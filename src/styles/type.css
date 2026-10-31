@@ -22,6 +22,10 @@
   .type-subtitle {
     font-family: var(--font-display);
     font-weight: var(--weight-regular);
+    /* Headings are short, so the slower layout pass for better kerning and ligatures costs nothing. */
+    font-kerning: normal;
+    font-feature-settings: 'kern', 'liga';
+    text-rendering: optimizeLegibility;
   }
 
   .type-display {
@@ -56,8 +60,10 @@
   .type-lede {
     font-family: var(--font-sans);
     font-size: var(--text-lg);
-    font-weight: var(--weight-regular);
+    /* Light against the serif display: the contrast between the two voices is the point. */
+    font-weight: var(--weight-light);
     line-height: var(--leading-lede);
+    letter-spacing: var(--tracking-lede);
     color: var(--color-text-secondary);
   }
 
@@ -65,6 +71,7 @@
     font-family: var(--font-sans);
     font-size: var(--text-base);
     line-height: var(--leading-body);
+    letter-spacing: var(--tracking-body);
     color: var(--color-text-secondary);
   }
 

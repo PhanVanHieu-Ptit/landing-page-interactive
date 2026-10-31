@@ -17,11 +17,21 @@
   scroll-margin-block-start: calc(-1 * (var(--header-h) + var(--space-5)));
 }
 
-/* `--story-length` is a number of viewport heights; `svh` keeps it stable while a phone's browser bars come and go. */
+/*
+ * The track is one screen (the pinned stage) plus the pinned distance, which is
+ * one "beat" of scroll per chapter. A beat is a share of the screen's height,
+ * but never under 26rem: on a short landscape phone a share alone would leave
+ * a chapter about a thumb-flick of scroll, and one flick would skip it. And
+ * never over 44rem, so a tall screen does not pin for ages. `svh` keeps the
+ * stage stable while a phone's browser bars come and go. The story controller
+ * reads the track's real height, so none of this is known to it.
+ */
 .track {
+  --beat: clamp(26rem, 60vh, 44rem);
+  --beat: clamp(26rem, 60svh, 44rem);
   position: relative;
-  block-size: calc(var(--story-length) * 100vh);
-  block-size: calc(var(--story-length) * 100svh);
+  block-size: calc(100vh + var(--story-run, calc(var(--beat) * var(--story-beats, 5))));
+  block-size: calc(100svh + var(--story-run, calc(var(--beat) * var(--story-beats, 5))));
 }
 
 .stage {
@@ -83,12 +93,13 @@
   pointer-events: none;
 }
 
+/* `minmax(0, 1fr)`: the row must never grow to its content, or the rail is pushed out of the stage and clipped. */
 .inner {
   display: grid;
-  grid-template-rows: 1fr auto;
+  grid-template-rows: minmax(0, 1fr) auto;
   row-gap: var(--space-5);
   block-size: 100%;
-  padding-block: calc(var(--header-h) + var(--space-5)) var(--space-5);
+  padding-block: calc(var(--header-h) + var(--space-5)) max(var(--space-5), var(--safe-bottom));
 }
 
 /* Every chapter takes the same grid cell (see StoryChapter.module.css), so the list is as tall as its tallest chapter. */
@@ -143,12 +154,99 @@
   }
 
   .inner {
-    padding-block-end: var(--space-6);
+    padding-block-end: max(var(--space-6), var(--safe-bottom));
   }
 
   .railLabel {
     min-inline-size: 9rem;
   }
+}
+
+/*
+ * Stacked and split: the lens gets a box of its own and the copy another, so
+ * they cannot overlap. The canvas is that box (the renderer centers the lens
+ * in whatever size the canvas is), the scrim is not needed, and the copy's
+ * row is sized by its tallest chapter, so the lens zone takes what is left.
+ * Close-ups crop at the zone's edge, which is faded out so it reads as light
+ * falling off, not as a window. `data-layout` is set by ScrollStory from
+ * src/animation/story-layout.ts.
+ */
+[data-layout='stacked'] .stage,
+[data-layout='split'] .stage {
+  display: grid;
+  /* The transparent header floats over the top of the stage; both zones start under it. (Padding, not a margin on the canvas, which is 100% of its area and would overflow it.) */
+  padding-block-start: var(--header-h);
+}
+
+[data-layout='stacked'] .canvas,
+[data-layout='split'] .canvas {
+  position: relative;
+  inset: auto;
+  z-index: auto;
+}
+
+[data-layout='stacked'] .scrim,
+[data-layout='split'] .scrim {
+  display: none;
+}
+
+[data-layout='stacked'] .inner,
+[data-layout='split'] .inner {
+  grid-template-rows: auto auto;
+  row-gap: var(--space-4);
+}
+
+/* The lens zone on top, the copy under it. */
+[data-layout='stacked'] .stage {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+[data-layout='stacked'] .canvas {
+  grid-row: 1;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 1.25rem, #000 calc(100% - 2.5rem), transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 1.25rem, #000 calc(100% - 2.5rem), transparent);
+}
+
+[data-layout='stacked'] .inner {
+  grid-row: 2;
+  block-size: auto;
+  padding-block: var(--space-2) max(var(--space-5), var(--safe-bottom));
+}
+
+[data-layout='stacked'] .lighting {
+  background-image:
+    radial-gradient(60% 34% at 50% 30%, var(--color-accent-soft), transparent 72%), var(--light-rim),
+    var(--light-vignette);
+}
+
+/* Landscape with little height: copy on the left, as it reads first, and the lens on the right. */
+[data-layout='split'] .stage {
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+
+[data-layout='split'] .canvas {
+  grid-column: 2;
+  grid-row: 1;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 1.25rem), linear-gradient(to right, transparent, #000 2.5rem);
+  mask-image: linear-gradient(to bottom, transparent, #000 1.25rem), linear-gradient(to right, transparent, #000 2.5rem);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+
+[data-layout='split'] .inner {
+  grid-column: 1;
+  grid-row: 1;
+  grid-template-rows: minmax(0, 1fr) auto;
+  row-gap: var(--space-3);
+  padding-block: var(--space-2) max(var(--space-3), var(--safe-bottom));
+}
+
+[data-layout='split'] .lighting {
+  background-image:
+    radial-gradient(40% 56% at 72% 54%, var(--color-accent-soft), transparent 72%), var(--light-rim),
+    var(--light-vignette);
 }
 
 /*
@@ -159,23 +257,33 @@
   block-size: auto;
 }
 
+/* Whatever the layout, reduced motion is one column: the finished lens, then the chapters. (After the layout rules above, so it wins at equal specificity.) */
 [data-mode='static'] .stage {
   position: relative;
+  display: block;
   block-size: auto;
+  padding: 0;
   contain: none;
 }
 
+/* A box the lens can fill on a phone, a tablet and a short landscape screen alike; the old `100vw` cap made it tiny in landscape. */
 [data-mode='static'] .canvas {
   position: relative;
   inset: auto;
   z-index: auto;
-  block-size: min(72svh, 100vw);
+  margin: 0;
+  -webkit-mask-image: none;
+  mask-image: none;
+  block-size: min(64svh, 40rem);
 }
 
 /* The glow belongs behind the lens, not behind every chapter below it. */
 [data-mode='static'] .lighting {
   inset-block-end: auto;
-  block-size: min(72svh, 100vw);
+  block-size: min(64svh, 40rem);
+  background-image:
+    radial-gradient(52% 44% at 50% 40%, var(--color-accent-soft), transparent 72%), var(--light-rim),
+    var(--light-vignette);
 }
 
 [data-mode='static'] .scrim,

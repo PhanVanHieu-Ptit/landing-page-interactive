@@ -1,0 +1,23 @@
+/*
+ * Sits on the header's bottom hairline: the border is transparent until the
+ * page scrolls, so the fill is the first thing that line ever shows. The
+ * negative offset moves it out of the padding box onto the border itself.
+ * The fill follows `--page-progress` (0 to 1, written per frame) with no
+ * transition, so it tracks the scrollbar one to one.
+ */
+.bar {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: calc(var(--border-hairline) * -1);
+  block-size: var(--border-hairline);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.fill {
+  display: block;
+  block-size: 100%;
+  background-color: var(--color-accent);
+  transform: scaleX(var(--page-progress, 0));
+  transform-origin: left center;
+}

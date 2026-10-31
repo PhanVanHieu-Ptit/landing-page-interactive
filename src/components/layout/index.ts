@@ -1,5 +1,6 @@
 export { Container } from './Container/Container'
 export { Navigation } from './Navigation/Navigation'
+export { Preloader } from './Preloader/Preloader'
 export { SiteFooter } from './SiteFooter/SiteFooter'
 export { SiteHeader } from './SiteHeader/SiteHeader'
 export { SkipLink } from './SkipLink/SkipLink'

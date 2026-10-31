@@ -14,8 +14,12 @@ export function clampFrameIndex(index: number, frameCount: number): number {
 export function resolveSource(source: ImageSequenceSource): ResolvedImageSequenceSource {
   const digits = source.digits ?? 4
   const firstFrameNumber = source.firstFrameNumber ?? 1
+  const step = source.step ?? 1
   if (!Number.isInteger(source.frameCount) || source.frameCount < 1) {
     throw new RangeError(`frameCount must be a positive integer, got ${source.frameCount}`)
+  }
+  if (!Number.isInteger(step) || step < 1) {
+    throw new RangeError(`step must be a positive integer, got ${step}`)
   }
   if (!Number.isInteger(digits) || digits < 1) {
     throw new RangeError(`digits must be a positive integer, got ${digits}`)
@@ -29,13 +33,14 @@ export function resolveSource(source: ImageSequenceSource): ResolvedImageSequenc
     prefix: source.prefix ?? 'frame-',
     digits,
     firstFrameNumber,
+    step,
     extension: (source.extension ?? 'webp').replace(/^\./, ''),
   }
 }
 
 /** URL of the frame at zero-based `index`, following the naming convention in `ImageSequenceSource`. */
 export function buildFrameUrl(source: ResolvedImageSequenceSource, index: number): string {
-  const number = String(source.firstFrameNumber + index).padStart(source.digits, '0')
+  const number = String(source.firstFrameNumber + index * source.step).padStart(source.digits, '0')
   return `${source.baseUrl}/${source.prefix}${number}.${source.extension}`
 }
 

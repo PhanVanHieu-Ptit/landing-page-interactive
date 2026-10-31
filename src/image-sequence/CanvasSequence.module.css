@@ -1,0 +1,6 @@
+/* The parent decides the size; the canvas just fills it. */
+.canvas {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}

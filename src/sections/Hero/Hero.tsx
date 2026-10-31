@@ -39,15 +39,27 @@ export function Hero() {
   }, [reducedMotion])
 
   // `--hero-progress` changes every frame while scrolling, so it is written straight to the element rather than through React state.
+  // It is tracked only while the Hero is on screen: once scrolled past there is nothing left to animate, and measuring it on every scroll frame would only force layout.
   useEffect(() => {
     const section = sectionRef.current
     if (reducedMotion || !section) return undefined
 
-    const stop = trackScrollProgress(section, (progress) => {
-      section.style.setProperty('--hero-progress', String(progress))
+    let stop: (() => void) | undefined
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[entries.length - 1]?.isIntersecting) {
+        stop ??= trackScrollProgress(section, (progress) => {
+          section.style.setProperty('--hero-progress', String(progress))
+        })
+      } else {
+        stop?.()
+        stop = undefined
+      }
     })
+    observer.observe(section)
+
     return () => {
-      stop()
+      observer.disconnect()
+      stop?.()
       section.style.removeProperty('--hero-progress')
     }
   }, [reducedMotion])
@@ -55,8 +67,10 @@ export function Hero() {
   return (
     <section ref={sectionRef} className={styles.hero} aria-labelledby="hero-title">
       <div className={styles.lighting} aria-hidden="true" />
-      <div className={styles.stageFrame}>
-        <ProductStage introduce />
+      <div className={styles.stageZone}>
+        <div className={styles.stageFrame}>
+          <ProductStage introduce />
+        </div>
       </div>
       <div className={styles.scrim} aria-hidden="true" />
 

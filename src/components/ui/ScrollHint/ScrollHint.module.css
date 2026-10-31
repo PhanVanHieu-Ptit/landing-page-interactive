@@ -34,7 +34,7 @@
 /* Motion is opt-in: with reduced motion the line simply stays still. */
 @media (prefers-reduced-motion: no-preference) {
   .line::after {
-    animation: travel 2.6s var(--ease-in-out) infinite;
+    animation: travel var(--duration-ambient) var(--ease-in-out) infinite;
   }
 }
 

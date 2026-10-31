@@ -1,4 +1,6 @@
 export { PrimaryButton, type PrimaryButtonProps } from './PrimaryButton/PrimaryButton'
 export { ScrollHint } from './ScrollHint/ScrollHint'
+export { ScrollProgress } from './ScrollProgress/ScrollProgress'
 export { SectionHeading } from './SectionHeading/SectionHeading'
 export { SectionIndicator } from './SectionIndicator/SectionIndicator'
+export { SwapText } from './SwapText/SwapText'

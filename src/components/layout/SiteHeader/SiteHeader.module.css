@@ -10,6 +10,8 @@
   inset-block-start: 0;
   z-index: var(--z-header);
   margin-block-end: calc((var(--header-h) + var(--border-hairline)) * -1);
+  /* The bar sits below the status bar or notch, if the page runs under one (`--header-h` already counts it). */
+  padding-block-start: var(--safe-top);
   border-block-end: var(--border-hairline) solid transparent;
   background-color: transparent;
   -webkit-backdrop-filter: blur(0) saturate(1);
@@ -33,13 +35,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  block-size: var(--header-h);
+  block-size: var(--header-bar);
 }
 
+/* A touch target: the mark alone is 24px, so the link is padded out to 44. */
 .brand {
   display: inline-flex;
   align-items: center;
   gap: var(--space-3);
+  min-block-size: 2.75rem;
   color: var(--color-text-primary);
 }
 
@@ -48,6 +52,17 @@
   inline-size: 1.5rem;
   block-size: 1.5rem;
   color: var(--color-accent);
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+@media (hover: hover) {
+  .brand:hover .mark {
+    color: var(--color-accent-strong);
+  }
+}
+
+.brand:focus-visible .mark {
+  color: var(--color-accent-strong);
 }
 
 .wordmark {
@@ -65,20 +80,66 @@
   color: var(--color-text-primary);
 }
 
+/* Below the tablet breakpoint: the call to action and the toggle, side by side at the end of the bar. */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/*
+ * Hidden until the page scrolls (the Hero has its own button at the top), but
+ * it keeps its space, so the toggle never shifts when it arrives. Hidden, it is
+ * also out of the tab order and the accessibility tree.
+ */
+.barCta {
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity var(--duration-base) var(--ease-standard),
+    visibility 0s linear var(--duration-base);
+}
+
+.header[data-scrolled] .barCta {
+  visibility: visible;
+  opacity: 1;
+  transition-delay: 0s;
+}
+
+/* On a 320px phone the bar has 280px: the mark alone (still named, for screen readers) leaves room for the button and the toggle. */
+@media (max-width: 22.4375rem) {
+  .wordmark {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
 /*
  * Mobile: the menu is a panel under the header. Closed, it is `visibility:
  * hidden`, so its links leave the tab order and the accessibility tree; the
- * delayed visibility transition lets the fade-out finish first.
+ * delayed visibility transition lets the fade-out finish first. It never grows
+ * past the screen (`dvh`: the height actually visible right now) and scrolls
+ * inside itself when a short landscape phone cannot show it whole, without
+ * handing the scroll to the page behind it.
  */
 .menu {
   position: absolute;
+  z-index: 1;
   inset-inline: 0;
   /* `100%` is the header's padding edge, just above its bottom border; start below it so the hairline stays visible. */
   inset-block-start: calc(100% + var(--border-hairline));
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
-  padding: var(--space-2) var(--gutter) var(--space-7);
+  max-block-size: calc(100vh - var(--header-h));
+  max-block-size: calc(100dvh - var(--header-h));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-2) var(--gutter) max(var(--space-7), var(--safe-bottom));
   border-block-end: var(--border-hairline) solid var(--color-line);
   background-color: var(--color-bg);
   visibility: hidden;
@@ -97,13 +158,48 @@
   transition-delay: 0s;
 }
 
-.cta {
-  align-self: stretch;
+/* On a phone the call to action is in the bar; the panel is for the links. */
+.menuCta {
+  display: none;
+}
+
+/*
+ * The page behind an open panel is dimmed, and tapping the dimmed part closes
+ * the menu (see SiteHeader.tsx). It is the header's own pseudo-element, so it
+ * moves with the header and needs no fixed positioning, which the header's
+ * backdrop filter would otherwise make relative to the header anyway. It does
+ * not lock the page's scroll: the page stays the user's to scroll.
+ */
+.header::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  inset-inline: 0;
+  inset-block-start: calc(100% + var(--border-hairline));
+  block-size: 100vh;
+  block-size: 100dvh;
+  background-color: color-mix(in srgb, var(--color-bg) 72%, transparent);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--duration-base) var(--ease-standard),
+    visibility 0s linear var(--duration-base);
+}
+
+.header[data-menu-open]::after {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
 }
 
 @media (min-width: 48rem) {
-  .toggle {
+  .actions,
+  .header::after {
     display: none;
+  }
+
+  .menuCta {
+    display: block;
   }
 
   .menu {
@@ -111,6 +207,8 @@
     flex-direction: row;
     align-items: center;
     gap: var(--space-7);
+    max-block-size: none;
+    overflow: visible;
     padding: 0;
     border-block-end: 0;
     background: none;
@@ -118,9 +216,5 @@
     opacity: 1;
     transform: none;
     transition: none;
-  }
-
-  .cta {
-    align-self: auto;
   }
 }

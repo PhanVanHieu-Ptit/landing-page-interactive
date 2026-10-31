@@ -5,21 +5,61 @@
   max-inline-size: 36rem;
 }
 
+/*
+ * Staggered entrance, scrubbed rather than timed. Each part of the chapter
+ * (`--k`, 0 to 4, top to bottom) starts `--k` tenths of the way into the
+ * chapter's `--chapter-presence` and still arrives fully at 1, so the copy
+ * cascades in while you scroll in, and in reverse (the lowest part first) as
+ * you scroll out. Nothing runs on a timer, so it can never lag the scroll or
+ * fight it, and it plays the same in either direction. The lower parts also
+ * travel a little farther than the one above (`--chapter-shift`), which lets
+ * the block settle from the top down.
+ */
+.eyebrow,
+.title,
+.body,
+.facts,
+.cta {
+  --lag: calc(var(--k) * 0.1);
+  opacity: clamp(0, calc((var(--chapter-presence, 0) - var(--lag)) / (1 - var(--lag))), 1);
+  translate: 0 calc(var(--chapter-shift, 1) * var(--k) * 0.35rem);
+}
+
 .eyebrow {
+  --k: 0;
   display: flex;
   align-items: center;
   gap: var(--space-3);
   margin: 0;
 }
 
+.title {
+  --k: 1;
+}
+
+.body {
+  --k: 2;
+}
+
+.facts {
+  --k: 3;
+}
+
+.cta {
+  --k: 4;
+}
+
 .position {
   color: var(--color-accent);
 }
 
+/* The hairline draws out from the number as the chapter arrives. */
 .rule {
   inline-size: var(--space-7);
   block-size: var(--border-hairline);
   background-image: var(--rule-fade);
+  scale: var(--chapter-presence, 0) 1;
+  transform-origin: left center;
 }
 
 .title {
@@ -62,7 +102,44 @@
   }
 }
 
+/*
+ * Landscape with little height (see `data-layout` in ScrollStory.tsx): a
+ * column barely 300px wide and a screen under 400px tall have to hold the
+ * eyebrow, the title, the sentence and, in the last chapter, a button. So the
+ * figures (which repeat the sentence) go, and the type and gaps come down a
+ * step. Only a step: it is still the same copy, readable without zooming.
+ */
+[data-layout='split'] .facts {
+  display: none;
+}
+
+[data-layout='split'] .content {
+  gap: var(--space-2);
+}
+
+[data-layout='split'] .title {
+  font-size: var(--text-xl);
+}
+
+[data-layout='split'] .body {
+  font-size: var(--text-sm);
+}
+
+[data-layout='split'] .cta {
+  margin-block-start: var(--space-1);
+}
+
 /* Reduced motion shows every chapter in flow, on any screen, so nothing competes with the lens and the figures can stay. */
 [data-mode='static'] .facts {
   display: flex;
+}
+
+/* No frame loop in this mode, so `--chapter-presence` is never written: every part rests in its final pose. */
+[data-mode='static'] :is(.eyebrow, .title, .body, .facts, .cta) {
+  opacity: 1;
+  translate: none;
+}
+
+[data-mode='static'] .rule {
+  scale: none;
 }

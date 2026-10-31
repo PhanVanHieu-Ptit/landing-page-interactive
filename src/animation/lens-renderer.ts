@@ -10,6 +10,8 @@ export interface LensRenderer {
 interface LensRendererOptions {
   /** Cap on backing-store pixels per CSS pixel. Lower it where fill rate is scarce. */
   maxDpr: number
+  /** Cap on the backing store's total pixels (see `fitCanvas`). `undefined` takes its default. */
+  maxPixels?: number | undefined
 }
 
 /**
@@ -23,9 +25,9 @@ export function createLensRenderer(
   canvas: HTMLCanvasElement,
   width: number,
   height: number,
-  { maxDpr }: LensRendererOptions,
+  { maxDpr, maxPixels }: LensRendererOptions,
 ): LensRenderer | null {
-  const fitted = fitCanvas(canvas, width, height, maxDpr)
+  const fitted = fitCanvas(canvas, width, height, maxDpr, maxPixels)
   if (!fitted) return null
 
   const palette = readLensPalette(canvas)

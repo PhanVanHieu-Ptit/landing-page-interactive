@@ -20,17 +20,35 @@ export function lensParamsAt(progress: number): LensParams {
 /** The frame to show before the first tick, so the resting lens never flashes. */
 export const LENS_INTRO_START: LensParams = lensParamsAt(0)
 
-/** Opens the iris over ~1.6 s, calling `onFrame` with the parameters for each frame. Returns a cancel function. */
-export function playLensIntro(onFrame: (params: LensParams) => void, onComplete: () => void): () => void {
-  return tween({ duration: IRIS_MS, onUpdate: (progress) => onFrame(lensParamsAt(progress)), onComplete })
+/**
+ * Opens the iris over ~1.6 s, calling `onFrame` with the parameters for each
+ * frame. It begins when `start` resolves (immediately by default); until then
+ * the caller's start pose stays on the canvas. Returns a cancel function.
+ */
+export function playLensIntro(
+  onFrame: (params: LensParams) => void,
+  onComplete: () => void,
+  start: Promise<void> = Promise.resolve(),
+): () => void {
+  let cancelled = false
+  let cancelTween: (() => void) | undefined
+  start.then(() => {
+    if (cancelled) return
+    cancelTween = tween({ duration: IRIS_MS, onUpdate: (progress) => onFrame(lensParamsAt(progress)), onComplete })
+  })
+  return () => {
+    cancelled = true
+    cancelTween?.()
+  }
 }
 
 /**
  * Fades the product in while it settles from a slight scale-up, using the Web
- * Animations API. `fill: 'backwards'` holds the start pose until it plays and
- * releases the element afterwards. Returns a cancel function.
+ * Animations API. It is created paused, which holds the start pose, and plays
+ * when `start` resolves (immediately by default); `fill: 'backwards'` releases
+ * the element afterwards. Returns a cancel function.
  */
-export function playStageEntrance(element: HTMLElement): () => void {
+export function playStageEntrance(element: HTMLElement, start: Promise<void> = Promise.resolve()): () => void {
   const animation = element.animate(
     [
       { opacity: 0, transform: 'scale(1.06)' },
@@ -42,5 +60,10 @@ export function playStageEntrance(element: HTMLElement): () => void {
       fill: 'backwards',
     },
   )
+  animation.pause()
+  start.then(() => {
+    // A cancelled animation is idle, and playing an idle one would restart it.
+    if (animation.playState === 'paused') animation.play()
+  })
   return () => animation.cancel()
 }

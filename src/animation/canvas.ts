@@ -9,21 +9,56 @@ export interface FittedCanvas {
   dpr: number
 }
 
+/** Default cap on a canvas's backing store, in pixels (4 MP: 1440 x 900 at 1.75x). */
+export const DEFAULT_MAX_PIXELS = 4_000_000
+
+export interface DprInputs {
+  cssWidth: number
+  cssHeight: number
+  devicePixelRatio: number
+  /** Cap on pixels per CSS pixel: beyond it the extra pixels are not visible. */
+  maxDpr: number
+  /** Cap on the backing store's total pixels. */
+  maxPixels: number
+}
+
+/**
+ * Pixels per CSS pixel for a canvas: the screen's own ratio, held down by two
+ * caps. `maxDpr` is about what the eye can see; `maxPixels` is about what the
+ * device can afford, because these canvases are redrawn in full every frame, so
+ * the cost is the area times the ratio squared, and a big screen (a 5K display,
+ * a tablet in landscape) can ask for several times what a phone does. The
+ * budget never pushes the ratio below 1 (or below the screen's own, if that is
+ * under 1): a soft canvas is a worse trade than a slow one.
+ */
+export function resolveDpr({ cssWidth, cssHeight, devicePixelRatio, maxDpr, maxPixels }: DprInputs): number {
+  const screen = devicePixelRatio > 0 ? devicePixelRatio : 1
+  const wanted = Math.min(screen, maxDpr)
+
+  const area = cssWidth * cssHeight
+  if (!(area > 0)) return wanted
+
+  const affordable = Math.sqrt(maxPixels / area)
+  return Math.min(wanted, Math.max(affordable, Math.min(1, wanted)))
+}
+
 /**
  * Sizes the canvas backing store for the device pixel ratio and returns a
- * context whose coordinate system is CSS pixels. The ratio is capped (default
- * 2): beyond that the extra pixels cost memory and are not visible.
+ * context whose coordinate system is CSS pixels. The ratio is capped twice (see
+ * `resolveDpr`): `maxDpr` (default 2) for what is visible, `maxPixels` for what
+ * is affordable.
  */
 export function fitCanvas(
   canvas: HTMLCanvasElement,
   cssWidth: number,
   cssHeight: number,
   maxDpr = 2,
+  maxPixels = DEFAULT_MAX_PIXELS,
 ): FittedCanvas | null {
   const ctx = get2dContext(canvas)
   if (!ctx) return null
 
-  const dpr = Math.min(window.devicePixelRatio || 1, maxDpr)
+  const dpr = resolveDpr({ cssWidth, cssHeight, devicePixelRatio: window.devicePixelRatio, maxDpr, maxPixels })
   canvas.width = Math.max(1, Math.round(cssWidth * dpr))
   canvas.height = Math.max(1, Math.round(cssHeight * dpr))
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)

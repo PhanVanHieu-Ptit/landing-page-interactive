@@ -22,8 +22,8 @@
   --text-lg: clamp(1.125rem, 1.0625rem + 0.2778vw, 1.3125rem); /* 18 → 21  lede */
   --text-xl: clamp(1.375rem, 1.25rem + 0.5556vw, 1.75rem); /* 22 → 28  large lede */
   --text-2xl: clamp(1.75rem, 1.5rem + 1.1111vw, 2.5rem); /* 28 → 40  h3 */
-  --text-3xl: clamp(2.25rem, 1.75rem + 2.2222vw, 3.75rem); /* 36 → 60  h2 */
-  --text-4xl: clamp(2.75rem, 1.9167rem + 3.7037vw, 5.25rem); /* 44 → 84  closing statement */
+  --text-3xl: clamp(2.5rem, 1.8333rem + 2.963vw, 4.5rem); /* 40 → 72  h2 */
+  --text-4xl: clamp(3rem, 1.8333rem + 5.185vw, 6.5rem); /* 48 → 104 closing statement */
   --text-display: clamp(3.25rem, 1.8333rem + 6.2963vw, 7.5rem); /* 52 → 120 h1 */
   --text-hero: clamp(3.75rem, 1.5rem + 9vw, 9rem); /* 60 → 144 hero headline, set over the product */
   --text-ghost: clamp(6rem, 24vw, 24rem); /* decorative footer wordmark only */
@@ -34,8 +34,12 @@
   --leading-lede: 1.5;
   --leading-body: 1.6;
 
-  --tracking-display: -0.025em;
-  --tracking-title: -0.018em;
+  /* Large serif type tightens as it grows; small sans text opens back up toward 0. */
+  --tracking-display: -0.03em;
+  --tracking-title: -0.02em;
+  --tracking-lede: -0.01em;
+  --tracking-body: -0.005em;
   --tracking-normal: 0;
+  --tracking-button: 0.12em;
   --tracking-label: 0.14em;
 }

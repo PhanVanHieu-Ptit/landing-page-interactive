@@ -1,0 +1,24 @@
+/* Development harness: plain on purpose, so nothing here is mistaken for the site's design. */
+/* Top-right: the top-left is the engine's own fallback badge, and the bottom is the story's copy and progress rail. */
+.note {
+  position: fixed;
+  inset-block-start: var(--space-3);
+  inset-inline-end: var(--gutter);
+  z-index: var(--z-overlay);
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-text-secondary);
+  background-color: var(--color-scrim);
+  border: var(--border-hairline) solid var(--color-line);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.end {
+  padding-block: var(--space-section);
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  text-align: center;
+}

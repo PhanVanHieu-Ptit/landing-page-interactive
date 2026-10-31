@@ -7,11 +7,11 @@
   border-block-end: var(--border-hairline) solid var(--color-line);
 }
 
+/* The top hairline is drawn by `reveal-line` (src/styles/reveal.css). */
 .row {
   display: grid;
   gap: var(--space-4);
   padding-block: var(--space-7);
-  border-block-start: var(--border-hairline) solid var(--color-line);
 }
 
 .lead {

@@ -1,4 +1,5 @@
 import type { LensParams } from './lens'
+import { isMidStory, scrollTopForProgress, shouldCarryProgress } from './story-scroll'
 import type { StoryTimeline } from './story-timeline'
 
 /*
@@ -6,7 +7,8 @@ import type { StoryTimeline } from './story-timeline'
  *
  *   scroll event (passive) ─► schedule a frame
  *   frame: read scrollY ─► target progress ─► ease `shown` toward it
- *          ─► write CSS variables + paint the lens + report the active chapter
+ *          ─► write CSS variables + paint the lens (or tell `progress`'s
+ *             listeners, e.g. an image sequence) + report the active chapter
  *
  * The scroll listener never computes anything; every frame re-reads the latest
  * scroll position, so a burst of scroll events (or a flick, or a jump to the
@@ -29,13 +31,35 @@ export interface StoryAttachment {
   root: HTMLElement
   /** One per chapter, in order. Each receives `--chapter-presence` and `--chapter-shift`. */
   chapters: readonly (HTMLElement | null)[]
-  /** Draws a lens pose. May do nothing before the canvas exists; `refresh` repaints once it does. */
-  paint: (pose: LensParams) => void
+  /** Draws a lens pose. May do nothing before the canvas exists; `refresh` repaints once it does. Left out when something else (an image sequence, following `progress`) draws the stage. */
+  paint?: ((pose: LensParams) => void) | undefined
   /** Time constant of the ease toward the scroll position, in milliseconds. 0 follows the scroll exactly. */
   smoothingMs: number
+  /**
+   * Where in the story the reader was before the layout changed under them and this controller replaced
+   * another (a rotation across a layout boundary). When partway through, the page is scrolled to the same
+   * place in the new track instead of the same pixel offset; see `story-scroll.ts`.
+   */
+  restoreProgress?: number | undefined
+}
+
+/**
+ * A 0 to 1 value that changes over time. Structurally the same as the image-sequence engine's
+ * `ProgressSource`, which is how the two meet without this module importing the engine.
+ * Listeners run inside the story's animation frame, and only when the value changed.
+ */
+export interface ProgressFeed {
+  get: () => number
+  subscribe: (listener: (progress: number) => void) => () => void
 }
 
 export interface StoryController {
+  /**
+   * The story's progress as it is shown (eased), for anything that should move with the copy:
+   * it updates in the same animation frame as the chapter variables. `subscribe` does not call
+   * the listener on subscription; read `get()` for the starting value.
+   */
+  progress: ProgressFeed
   /** Starts driving the story. Returns a function that stops it and clears everything it wrote. */
   attach: (attachment: StoryAttachment) => () => void
   /** Repaints the current frame, e.g. after the canvas has been created or resized. */
@@ -59,8 +83,11 @@ const format = (value: number) => String(Math.round(value * 1e4) / 1e4)
 
 export function createStoryController(timeline: StoryTimeline): StoryController {
   let active = 0
+  /** The progress last rendered, which is what `progress.get` answers. */
+  let current = 0
   let refreshCurrent: (() => void) | undefined
   const listeners = new Set<() => void>()
+  const progressListeners = new Set<(progress: number) => void>()
 
   const setActive = (next: number) => {
     if (next === active) return
@@ -69,6 +96,16 @@ export function createStoryController(timeline: StoryTimeline): StoryController 
   }
 
   return {
+    progress: {
+      get: () => current,
+      subscribe(listener) {
+        progressListeners.add(listener)
+        return () => {
+          progressListeners.delete(listener)
+        }
+      },
+    },
+
     getActive: () => active,
 
     subscribe(onChange) {
@@ -80,7 +117,7 @@ export function createStoryController(timeline: StoryTimeline): StoryController 
 
     refresh: () => refreshCurrent?.(),
 
-    attach({ track, stage, root, chapters, paint, smoothingMs }) {
+    attach({ track, stage, root, chapters, paint, smoothingMs, restoreProgress }) {
       let top = 0
       let distance = 1
       let target = 0
@@ -123,7 +160,9 @@ export function createStoryController(timeline: StoryTimeline): StoryController 
             element.style.setProperty('--chapter-shift', nextShift)
           }
         }
-        paint(timeline.poseAt(progress))
+        if (paint) paint(timeline.poseAt(progress))
+        current = progress
+        for (const listener of progressListeners) listener(progress)
         setActive(timeline.chapterAt(progress))
       }
 
@@ -154,9 +193,22 @@ export function createStoryController(timeline: StoryTimeline): StoryController 
         if (frame === 0 && visible) frame = requestAnimationFrame(tick)
       }
 
-      /** Jumps straight to the real scroll position, with no ease: for the first frame, a resize, a page restored from cache. */
+      /** Scrolls so that `progress` is where the reader is, in the track as it is now. The page's one scroll write: instant, because the document may be `scroll-behavior: smooth`. */
+      const scrollToProgress = (progress: number) => {
+        window.scrollTo({ top: scrollTopForProgress(top, distance, progress), behavior: 'instant' })
+      }
+
+      /**
+       * Jumps straight to the real scroll position, with no ease: for the first frame, a resize, a page restored from cache.
+       * If the resize changed how far the story pins (a rotation, a resized window) while the reader was partway through,
+       * the same scroll offset would be a different place in the story, so it carries them to the place they were at. Only
+       * while the story is on screen: its last-read progress is stale after a long absence.
+       */
       const jump = () => {
+        const previousDistance = distance
+        const place = target
         measure()
+        if (visible && shouldCarryProgress(previousDistance, distance, place)) scrollToProgress(place)
         snap = true
         schedule()
       }
@@ -167,6 +219,7 @@ export function createStoryController(timeline: StoryTimeline): StoryController 
       }
 
       measure()
+      if (restoreProgress !== undefined && isMidStory(restoreProgress)) scrollToProgress(restoreProgress)
       readTarget()
       shown = target
       snap = false

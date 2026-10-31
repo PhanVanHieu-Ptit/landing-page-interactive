@@ -3,6 +3,7 @@ import { fitCanvas } from '@/animation/canvas'
 import { DEFAULT_LENS_PARAMS, drawLens, readLensPalette, type LensParams } from '@/animation/lens'
 import { LENS_INTRO_START, playLensIntro, playStageEntrance } from '@/animation/stage-intro'
 import { useElementSize } from '@/hooks/useElementSize'
+import { useIntroGate } from '@/hooks/useIntroGate'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { cx } from '@/lib/cx'
 import styles from './ProductStage.module.css'
@@ -17,13 +18,15 @@ interface ProductStageProps {
 /**
  * The hero product, drawn on a canvas. The renderer is parametric (see
  * `LensParams`), so it can be animated without pre-rendered assets: today by
- * the one-shot entrance, later by a scroll-driven scene. The artwork is
- * described by `aria-label`; everything it says is also in the page text.
+ * the one-shot entrance (held until the preloader hands over), later by a
+ * scroll-driven scene. The artwork is described by `aria-label`; everything it
+ * says is also in the page text.
  */
 export function ProductStage({ className, introduce = false }: ProductStageProps) {
   const [wrapperRef, size] = useElementSize<HTMLDivElement>()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const reducedMotion = usePrefersReducedMotion()
+  const gate = useIntroGate()
   // Set when the iris has finished opening, so a later resize repaints the resting lens instead of replaying it.
   const introduced = useRef(false)
   const animate = introduce && !reducedMotion
@@ -32,8 +35,8 @@ export function ProductStage({ className, introduce = false }: ProductStageProps
   useLayoutEffect(() => {
     const wrapper = wrapperRef.current
     if (!animate || !wrapper) return undefined
-    return playStageEntrance(wrapper)
-  }, [animate, wrapperRef])
+    return playStageEntrance(wrapper, gate.released)
+  }, [animate, wrapperRef, gate])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -52,9 +55,13 @@ export function ProductStage({ className, introduce = false }: ProductStageProps
     let cancelIntro: (() => void) | undefined
     if (animate && !introduced.current) {
       paint(LENS_INTRO_START)
-      cancelIntro = playLensIntro(paint, () => {
-        introduced.current = true
-      })
+      cancelIntro = playLensIntro(
+        paint,
+        () => {
+          introduced.current = true
+        },
+        gate.released,
+      )
     } else {
       paint(DEFAULT_LENS_PARAMS)
     }
@@ -72,7 +79,7 @@ export function ProductStage({ className, introduce = false }: ProductStageProps
       cancelled = true
       cancelIntro?.()
     }
-  }, [size.width, size.height, animate])
+  }, [size.width, size.height, animate, gate])
 
   return (
     <div ref={wrapperRef} className={cx(styles.stage, className)}>
